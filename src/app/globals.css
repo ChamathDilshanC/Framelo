@@ -1,0 +1,276 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Framelo design system
+   A restrained dark creative-tool palette: deep neutral surfaces, low-contrast
+   hairlines, one accent. No gradients as decoration, no heavy shadows.
+--------------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------------
+   Palette
+   ---------------------------------------------------------------------------
+   Defined as plain custom properties so the theme can be swapped at runtime,
+   then handed to Tailwind through `@theme inline` below. `inline` matters: it
+   makes a utility compile to `var(--framelo-canvas)` rather than to a frozen
+   copy of the value, which is what lets one attribute on <html> repaint the
+   whole app with no re-render and no second stylesheet.
+
+   Dark is the default — this is a tool for looking at artwork — and is also
+   what an unset `data-theme` resolves to, so the no-flash script in the layout
+   only ever has to *add* an attribute.
+--------------------------------------------------------------------------- */
+
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --framelo-canvas: #08080a;
+  --framelo-surface: #0d0d11;
+  --framelo-surface-raised: #131318;
+  --framelo-surface-hover: #1a1a20;
+  --framelo-surface-active: #212128;
+
+  --framelo-line: #1e1e24;
+  --framelo-line-strong: #2c2c34;
+  --framelo-line-hover: #3c3c46;
+
+  --framelo-ink: #f2f2f5;
+  --framelo-ink-muted: #9a9aa5;
+  --framelo-ink-subtle: #63636e;
+
+  --framelo-accent: #7c6cff;
+  --framelo-accent-hover: #8e80ff;
+  --framelo-accent-press: #6a58f5;
+  --framelo-accent-ink: #ffffff;
+  --framelo-accent-soft: #1b1830;
+
+  --framelo-positive: #3ecf8e;
+  --framelo-caution: #f0a742;
+  --framelo-danger: #f0616d;
+
+  /* Depth comes from shadow in the dark theme and from hairlines in the light
+     one, so the shadow token carries the difference rather than every card. */
+  --framelo-shadow-panel: 0 24px 48px -12px rgb(0 0 0 / 0.6);
+
+  /* The "no background" checkerboard. Conventionally sits just off the
+     surrounding surface so it reads as absence, not as a pattern choice. */
+  --framelo-checker-a: #101014;
+  --framelo-checker-b: #17171c;
+}
+
+/* ---------------------------------------------------------------------------
+   Light
+   ---------------------------------------------------------------------------
+   Not an inversion. A creative tool in light mode wants panels *lighter* than
+   the workspace, so the artwork stays the darkest thing on screen and keeps
+   its own contrast: hence a grey canvas under white panels, the opposite of
+   the dark theme's arrangement.
+
+   The greys are very slightly cool to match the accent; the accent itself is
+   darkened, because #7c6cff on white is only 3.1:1 and it carries button text.
+--------------------------------------------------------------------------- */
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --framelo-canvas: #ececed;
+  --framelo-surface: #ffffff;
+  --framelo-surface-raised: #f7f7f9;
+  --framelo-surface-hover: #f0f0f3;
+  --framelo-surface-active: #e7e7ec;
+
+  --framelo-line: #e3e3e8;
+  --framelo-line-strong: #cfcfd8;
+  --framelo-line-hover: #b4b4c0;
+
+  --framelo-ink: #16161a;
+  --framelo-ink-muted: #55555f;
+  --framelo-ink-subtle: #74747f;
+
+  --framelo-accent: #5c48f0;
+  --framelo-accent-hover: #4e3ae4;
+  --framelo-accent-press: #422ed2;
+  --framelo-accent-ink: #ffffff;
+  --framelo-accent-soft: #eeecfe;
+
+  --framelo-positive: #0f8a5f;
+  --framelo-caution: #a2660a;
+  --framelo-danger: #cf3341;
+
+  --framelo-shadow-panel: 0 18px 40px -16px rgb(20 20 30 / 0.22);
+
+  --framelo-checker-a: #ffffff;
+  --framelo-checker-b: #e7e7ec;
+}
+
+@theme inline {
+  --color-canvas: var(--framelo-canvas);
+  --color-surface: var(--framelo-surface);
+  --color-surface-raised: var(--framelo-surface-raised);
+  --color-surface-hover: var(--framelo-surface-hover);
+  --color-surface-active: var(--framelo-surface-active);
+
+  --color-line: var(--framelo-line);
+  --color-line-strong: var(--framelo-line-strong);
+
+  --color-ink: var(--framelo-ink);
+  --color-ink-muted: var(--framelo-ink-muted);
+  --color-ink-subtle: var(--framelo-ink-subtle);
+
+  --color-accent: var(--framelo-accent);
+  --color-accent-hover: var(--framelo-accent-hover);
+  --color-accent-press: var(--framelo-accent-press);
+  --color-accent-ink: var(--framelo-accent-ink);
+  --color-accent-soft: var(--framelo-accent-soft);
+
+  --color-positive: var(--framelo-positive);
+  --color-caution: var(--framelo-caution);
+  --color-danger: var(--framelo-danger);
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  --font-sans: var(--framelo-font-sans), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Mono", Menlo, Consolas,
+    monospace;
+
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:root {
+  --shell-topbar: 52px;
+
+}
+
+* {
+  border-color: var(--color-line);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  transition:
+    background-color 260ms var(--ease-out-quint),
+    color 260ms var(--ease-out-quint);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv02", "cv03", "cv04", "ss01";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--color-accent) 40%, transparent);
+  color: var(--framelo-ink);
+}
+
+/* Focus: visible, but only for keyboard users. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* Scrollbars tuned for dense editor panels. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-line-strong);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--framelo-line-hover);
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+@utility panel-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-subtle);
+}
+
+@utility numeric {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  letter-spacing: -0.01em;
+}
+
+@utility surface-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--color-line) 70%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--color-line) 70%, transparent) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* Landing-page ambience. Used sparingly, once. */
+@utility aurora {
+  background:
+    radial-gradient(60rem 30rem at 20% -10%, color-mix(in oklab, var(--color-accent) 22%, transparent), transparent 60%),
+    radial-gradient(45rem 28rem at 85% 0%, color-mix(in oklab, #3ecfd0 12%, transparent), transparent 55%);
+}
+
+@keyframes framelo-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility animate-fade-up {
+  animation: framelo-fade-up 0.5s var(--ease-out-quint) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* goey-toast surface tuned to the Framelo palette. */
+[data-sonner-toaster] {
+  --framelo-toast-bg: color-mix(in oklab, var(--color-surface-raised) 92%, transparent);
+  font-family: var(--font-sans);
+}
