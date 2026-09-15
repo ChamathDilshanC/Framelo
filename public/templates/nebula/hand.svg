@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350">
+<defs>
+ <linearGradient id="skin" x1="0" y1="1" x2=".8" y2="0"><stop stop-color="#020102"/><stop offset=".6" stop-color="#100304"/><stop offset=".87" stop-color="#290606"/><stop offset="1" stop-color="#63160e"/></linearGradient>
+ <radialGradient id="rim" cx=".76" cy=".22" r=".85"><stop stop-color="#aa4124"/><stop offset=".22" stop-color="#47110b"/><stop offset=".6" stop-color="#180304"/><stop offset="1" stop-color="#040103"/></radialGradient>
+ <linearGradient id="thumb"><stop stop-color="#080204"/><stop offset=".65" stop-color="#250706"/><stop offset=".91" stop-color="#76261b"/><stop offset="1" stop-color="#3a0b07"/></linearGradient>
+</defs>
+<!-- Original vector cutout. The transparent centre contains no phone artwork. -->
+<path fill="url(#skin)" d="M0 1350 L0 1320 Q29 1289 78 1294 L183 1131 Q210 1092 229 1060 L251 970 Q246 911 259 851 Q263 812 288 782 L340 702 Q364 658 378 635 Q389 611 402 613 Q420 617 423 639 Q423 668 408 704 L383 758 Q369 792 371 817 Q393 855 430 862 L583 824 Q629 807 659 828 L702 891 Q722 931 705 963 Q691 993 638 1020 L544 1083 Q492 1127 430 1170 L393 1211 Q416 1224 431 1239 Q450 1255 433 1285 L404 1350Z"/>
+<path fill="url(#thumb)" d="M258 957 Q248 889 271 847 L351 716 Q370 681 382 646 Q394 604 410 619 Q437 643 410 702 L380 774 Q371 808 391 838 L418 874 Q356 914 334 1006Z"/>
+<path fill="url(#rim)" d="M651 580 Q681 553 699 574 Q715 593 704 614 Q697 631 674 642 L654 644Z"/>
+<path fill="url(#rim)" d="M650 700 Q674 677 698 691 Q723 706 722 732 Q721 761 697 773 Q676 784 651 768Z"/>
+<path fill="url(#rim)" d="M651 793 Q679 777 702 794 Q726 809 726 837 Q725 863 704 876 Q680 890 652 868Z"/>
+<path fill="url(#rim)" d="M648 890 Q674 871 699 892 Q719 908 725 936 Q733 963 709 979 Q684 992 653 971 L631 948Z"/>
+<g fill="none" stroke="#a3432b" stroke-opacity=".23" stroke-width="2"><path d="M677 697 Q711 711 708 734"/><path d="M678 799 Q715 815 712 842"/><path d="M677 896 Q707 910 711 938"/><path d="M384 648 Q390 625 402 625"/></g>
+<path fill="#030204" d="M0 1350 L0 1324 Q31 1288 80 1295 L179 1139 Q188 1120 202 1124 L233 1147 Q296 1198 391 1212 L430 1241 Q447 1257 432 1288 L404 1350Z"/>
+</svg>

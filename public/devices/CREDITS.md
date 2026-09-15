@@ -1,0 +1,29 @@
+# Third-party 3D model credits
+
+The device models in this folder are **third-party assets**. They are **not** authored by Framelo
+and are **not** covered by Framelo's own licence. Each is from [Sketchfab](https://sketchfab.com/)
+and licensed under
+[Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/).
+
+Reuse them only under their own CC BY 4.0 terms, which require that this attribution is kept intact
+and travels with the files.
+
+| File | Model | Author | Licence | Source |
+|------|-------|--------|---------|--------|
+| `iphone-15-pro-max.glb` | iPhone 15 Pro | [Sketcher (@jnanbr07)](https://sketchfab.com/jnanbr07) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | [Sketchfab](https://sketchfab.com/3d-models/iphone-15-pro-9e045e469d514fea9dda2ccd161f5fa3) |
+| `iphone-17-pro-max.glb` | iPhone 17 Pro Max | [MajdyModels (@MG990)](https://sketchfab.com/MG990) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | [Sketchfab](https://sketchfab.com/3d-models/iphone-17-pro-max-87fc1df741384124a8ce0226d2b2058d) |
+| `iphone-17-pro.glb` | iPhone 17 Pro | [Ranguel](https://sketchfab.com/Ranguel) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | [Sketchfab](https://sketchfab.com/3d-models/iphone-17-pro-4541aa8a28324b33a2baaf81d263aaec) |
+
+## How these files reached Framelo
+
+The models, their per-model orientation/UV corrections and the material-tuning approach used to
+render them were taken from
+[Phone Mockup Studio](https://github.com/quentin-pla/phone-mockup-studio) by Quentin PLA — that
+project's application code is MIT-licensed, and its own `CREDITS.md` carries the same attribution
+reproduced above. Framelo integrates the assets and rendering techniques only; its editor,
+timeline, animation engine and UI are its own.
+
+## Trademarks
+
+These models are fan-made visualisations and are not official Apple assets. "iPhone" is a trademark
+of Apple Inc. Framelo is not affiliated with, authorised by, or endorsed by Apple Inc.

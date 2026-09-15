@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="1300" viewBox="0 0 600 1300">
+<defs><linearGradient id="red" x2=".8" y2="1"><stop stop-color="#820900"/><stop offset=".45" stop-color="#cf1b04"/><stop offset="1" stop-color="#160101"/></linearGradient><linearGradient id="face"><stop stop-color="#1b0203"/><stop offset=".65" stop-color="#602019"/><stop offset="1" stop-color="#e35226"/></linearGradient><linearGradient id="coat"><stop stop-color="#050205"/><stop offset=".8" stop-color="#22090b"/><stop offset="1" stop-color="#67251b"/></linearGradient><linearGradient id="fade" x2="0" y2="1"><stop stop-color="#090809" stop-opacity="0"/><stop offset="1" stop-color="#090809"/></linearGradient></defs>
+<path fill="url(#red)" d="M0 0h600v1300H0z"/>
+<g fill="#ffe9dc" font-family="Arial,sans-serif" font-size="23"><text x="67" y="48">9:41</text><text x="459" y="48">▴ ▰</text></g>
+<rect x="25" y="102" width="66" height="67" rx="18" fill="#490702" opacity=".45"/><path d="m64 124-12 13 12 13" fill="none" stroke="#f4c3a7" stroke-width="3"/>
+<rect x="508" y="102" width="66" height="67" rx="18" fill="#490702" opacity=".45"/><path d="M529 140v12h25v-12m-13 4v-23m-7 7 7-7 7 7" fill="none" stroke="#edb19a" stroke-width="2"/>
+<!-- Original cinematic portrait illustration; the whole player is replaceable. -->
+<path fill="url(#coat)" d="M102 1060 Q100 771 141 660 Q160 596 246 558 L313 558 Q374 594 396 679 Q427 812 475 1060Z"/>
+<path fill="url(#face)" d="M245 511 L250 600 Q280 653 323 604 L305 528Z"/>
+<path fill="url(#face)" d="M206 302 Q277 238 338 291 Q367 319 361 365 L386 399 Q391 410 368 416 L369 453 Q353 501 319 534 Q291 552 258 518 L224 465 Q198 414 206 302Z"/>
+<path fill="#070104" d="M200 430 Q165 406 168 372 L154 355 166 340 149 323 170 310 156 289 175 280 169 257 191 253 186 234 208 234 213 211 236 219 249 195 269 207 288 193 302 211 324 202 332 226 353 224 355 247 371 260 360 290 Q350 307 332 305 Q272 273 252 329 L234 393 220 428Z"/>
+<path fill="#130306" d="M317 445 Q339 459 367 433 L360 475 Q327 528 309 530 L291 503 287 470Z"/>
+<path d="m326 351 27-8m-23 18 15-1" fill="none" stroke="#260708" stroke-width="7"/><path d="m354 375 11 26-14 7m-7 32 18-5" fill="none" stroke="#f46a35" stroke-opacity=".7" stroke-width="3"/>
+<path d="M245 602 298 660 263 757 230 641m69 19 23-51 37 92-67 146M163 699q31 152 8 306m198-293 32 271" fill="none" stroke="#a1422d" stroke-opacity=".45" stroke-width="5"/>
+<rect y="750" width="600" height="350" fill="url(#fade)"/>
+<g fill="#401407"><circle cx="522" cy="779" r="45"/><circle cx="522" cy="879" r="37"/></g><circle cx="522" cy="979" r="45" fill="#ff5b06"/>
+<g fill="none" stroke="#ff650b" stroke-width="4"><path d="M499 771h46m-46 15h46m-31-26v22m17-2v21M507 873h30m-30 12h30"/></g><path d="m521 961 17 9v19l-17 10-17-10v-19Z" fill="#1b0804"/>
+<g fill="#f8f2eb" font-family="Arial,sans-serif"><text x="34" y="980" font-size="44" font-weight="600">Starboy</text><text x="35" y="1021" font-size="22" fill="#887b76">The Weeknd</text></g>
+<rect x="0" y="1060" width="600" height="240" fill="#090809"/><rect x="16" y="1068" width="568" height="36" rx="6" fill="#292729"/><path d="M40 1086h518" stroke="#665e5b"/><path d="M40 1086h139" stroke="#f65a08" stroke-width="4"/><rect x="176" y="1070" width="7" height="31" rx="3" fill="#ff5b05"/>
+<g fill="#e8ded7" font-family="Arial,sans-serif" font-size="15"><text x="24" y="1090">1:45</text><text x="538" y="1090">3:10</text></g>
+<g fill="#191719"><circle cx="105" cy="1194" r="94"/><circle cx="300" cy="1194" r="94"/><circle cx="495" cy="1194" r="94"/></g>
+<g fill="#ff650b"><path d="M85 1179h6v31h-6zm7 15 28-16v32Z"/><path d="M284 1177h11v35h-11zm20 0h11v35h-11"/><path d="m480 1178 28 16-28 16zm29 0h6v32h-6Z"/></g>
+</svg>
