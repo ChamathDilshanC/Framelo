@@ -64,8 +64,8 @@ a background layer that stays genuinely transparent on export.
 **Requirements** — Node 20+ and a browser with WebGL2.
 
 ```bash
-git clone https://github.com/ChamathDilshanC/framelo.git
-cd framelo
+git clone https://github.com/ChamathDilshanC/Framelo---Create.-Animate.-Showcase.git
+cd Framelo---Create.-Animate.-Showcase
 npm install
 npm run dev          # http://localhost:3000
 ```
