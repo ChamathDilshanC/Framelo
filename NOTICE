@@ -1,0 +1,22 @@
+Framelo
+Copyright (c) 2026 Chamath Dilshan
+
+This product includes third-party material that is NOT covered by the MIT
+licence in LICENSE:
+
+1. 3D device models — public/devices/*.glb
+   Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0).
+   Redistribution requires that the attribution in public/devices/CREDITS.md
+   is kept intact and travels with the files.
+   See: https://creativecommons.org/licenses/by/4.0/
+
+2. Model orientation, UV corrections and material-tuning approach
+   Derived from Phone Mockup Studio by Quentin PLA (MIT).
+   See: https://github.com/quentin-pla/phone-mockup-studio
+
+3. Template artwork — public/templates/*/
+   See the CREDITS.md file in each template folder.
+
+The device models are fan-made visualisations and are not official Apple
+assets. "iPhone" is a trademark of Apple Inc. Framelo is not affiliated with,
+authorised by, or endorsed by Apple Inc.

@@ -428,6 +428,9 @@ endorsed by Apple Inc.
 
 [MIT](LICENSE) © [Chamath Dilshan](https://github.com/ChamathDilshanC)
 
+Third-party material bundled with this repository is listed in
+[`NOTICE`](NOTICE) and is covered by its own terms, not by the MIT licence.
+
 <div align="center">
 <br>
 
