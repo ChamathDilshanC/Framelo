@@ -86,8 +86,97 @@ Portfolio Tablet**, **Midnight Sales Laptop**, **Floating Commerce Laptop**,
 portrait canvases, original artwork and native editable animation tracks.
 Each ecosystem contains three independent device layers.
 
-Feature screenshots and their coverage index live in
-[`docs/screenshots/`](docs/screenshots/README.md).
+### Visual tour
+
+The quickest way to understand Framelo is to see the full creative workflow:
+start with a blank project, choose a device composition, refine every layer,
+and export a polished motion piece.
+
+<table>
+  <tr>
+    <td width="50%">
+      <a href="docs/screenshots/01-landing.png">
+        <img src="docs/screenshots/01-landing.png" alt="Framelo landing page" width="100%">
+      </a>
+      <br><strong>01 · Start with a clear canvas</strong><br>
+      <sub>A focused landing page that takes a project from idea to first frame.</sub>
+    </td>
+    <td width="50%">
+      <a href="docs/screenshots/02-project-dashboard.png">
+        <img src="docs/screenshots/02-project-dashboard.png" alt="Framelo project dashboard" width="100%">
+      </a>
+      <br><strong>02 · Keep every project close</strong><br>
+      <sub>A local-first dashboard for creating, reopening and managing compositions.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="docs/screenshots/03-create-project.png">
+        <img src="docs/screenshots/03-create-project.png" alt="Framelo create project screen" width="100%">
+      </a>
+      <br><strong>03 · Define the scene</strong><br>
+      <sub>Choose the device, canvas, background and starting motion before entering the studio.</sub>
+    </td>
+    <td>
+      <a href="docs/screenshots/04-editor-devices.png">
+        <img src="docs/screenshots/04-editor-devices.png" alt="Framelo editor device controls" width="100%">
+      </a>
+      <br><strong>04 · Shape the composition</strong><br>
+      <sub>Work directly with 3D devices, layers, transforms and a real animation timeline.</sub>
+    </td>
+  </tr>
+</table>
+
+#### Explore the template system
+
+Framelo ships with responsive template categories and six premium scenes, each
+editable rather than locked to a single screenshot.
+
+<table>
+  <tr>
+    <td><a href="docs/screenshots/05-mobile-templates.png"><img src="docs/screenshots/05-mobile-templates.png" alt="Mobile templates" width="100%"></a><br><strong>Mobile</strong><br><sub>Compact device compositions for product moments.</sub></td>
+    <td><a href="docs/screenshots/06-tablet-templates.png"><img src="docs/screenshots/06-tablet-templates.png" alt="Tablet templates" width="100%"></a><br><strong>Tablet</strong><br><sub>Editorial and portfolio-ready portrait scenes.</sub></td>
+    <td><a href="docs/screenshots/09-laptop-templates.png"><img src="docs/screenshots/09-laptop-templates.png" alt="Laptop templates" width="100%"></a><br><strong>Laptop</strong><br><sub>Wide compositions for campaigns and commerce.</sub></td>
+    <td><a href="docs/screenshots/12-multi-device-templates.png"><img src="docs/screenshots/12-multi-device-templates.png" alt="Multi-device templates" width="100%"></a><br><strong>Multi-device</strong><br><sub>Coordinated ecosystems with independent layers.</sub></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td><a href="docs/screenshots/07-crimson-editorial-tablet.png"><img src="docs/screenshots/07-crimson-editorial-tablet.png" alt="Crimson Editorial tablet scene" width="100%"></a><br><strong>Crimson Editorial</strong><br><sub>A refined tablet scene for visual stories.</sub></td>
+    <td><a href="docs/screenshots/08-neon-portfolio-tablet.png"><img src="docs/screenshots/08-neon-portfolio-tablet.png" alt="Neon Portfolio tablet scene" width="100%"></a><br><strong>Neon Portfolio</strong><br><sub>A high-contrast showcase for standout work.</sub></td>
+    <td><a href="docs/screenshots/10-midnight-sales-laptop.png"><img src="docs/screenshots/10-midnight-sales-laptop.png" alt="Midnight Sales laptop scene" width="100%"></a><br><strong>Midnight Sales</strong><br><sub>A dark, cinematic laptop composition.</sub></td>
+  </tr>
+  <tr>
+    <td><a href="docs/screenshots/11-floating-commerce-laptop.png"><img src="docs/screenshots/11-floating-commerce-laptop.png" alt="Floating Commerce laptop scene" width="100%"></a><br><strong>Floating Commerce</strong><br><sub>Product-led motion with a sense of depth.</sub></td>
+    <td><a href="docs/screenshots/13-amber-agency-ecosystem.png"><img src="docs/screenshots/13-amber-agency-ecosystem.png" alt="Amber Agency multi-device scene" width="100%"></a><br><strong>Amber Agency</strong><br><sub>A warm, coordinated three-device system.</sub></td>
+    <td><a href="docs/screenshots/14-lime-digital-campaign.png"><img src="docs/screenshots/14-lime-digital-campaign.png" alt="Lime Digital Campaign multi-device scene" width="100%"></a><br><strong>Lime Digital Campaign</strong><br><sub>A bright campaign system built for motion.</sub></td>
+  </tr>
+</table>
+
+#### Edit, animate and export
+
+The editor keeps the important controls visible without losing the visual
+focus: assign screen media, tune the composition, use shortcuts, and prepare
+the final export from one studio.
+
+<table>
+  <tr>
+    <td width="33%"><a href="docs/screenshots/15-multi-device-editor.png"><img src="docs/screenshots/15-multi-device-editor.png" alt="Framelo multi-device editor" width="100%"></a><br><strong>Animate the scene</strong><br><sub>Independent device layers, screen media and motion in one composition.</sub></td>
+    <td width="33%"><a href="docs/screenshots/16-composition-settings.png"><img src="docs/screenshots/16-composition-settings.png" alt="Framelo composition settings" width="100%"></a><br><strong>Set the output</strong><br><sub>Control dimensions, duration, frame rate and camera presentation.</sub></td>
+    <td width="33%"><a href="docs/screenshots/18-assets-screen-media.png"><img src="docs/screenshots/18-assets-screen-media.png" alt="Framelo screen media assets" width="100%"></a><br><strong>Make it yours</strong><br><sub>Bring in screen media and tune how it sits inside every device.</sub></td>
+  </tr>
+</table>
+
+Keyboard-driven workflows are supported too:
+
+<p align="center">
+  <a href="docs/screenshots/17-keyboard-shortcuts.png">
+    <img src="docs/screenshots/17-keyboard-shortcuts.png" alt="Framelo keyboard shortcuts" width="720">
+  </a>
+</p>
+
+<p align="center"><sub>Every capture above opens at full resolution. See the <a href="docs/screenshots/README.md">complete capture index</a> for coverage details.</sub></p>
 
 ---
 
