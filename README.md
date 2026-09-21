@@ -92,21 +92,27 @@ The quickest way to understand Framelo is to see the full creative workflow:
 start with a blank project, choose a device composition, refine every layer,
 and export a polished motion piece.
 
+The gallery keeps the original full-browser captures for the product journey,
+template categories and scene previews. The editor controls capture is the one
+intentional exception: `04-editor-devices.png` is tightly framed around the
+device list, media controls and properties panel so those controls stay
+readable at README scale.
+
 <table>
   <tr>
     <td width="50%">
       <a href="docs/screenshots/01-landing.png">
         <img src="docs/screenshots/01-landing.png" alt="Framelo landing page" width="100%">
       </a>
-      <br><strong>01 · Start with a clear canvas</strong><br>
-      <sub>A focused landing page that takes a project from idea to first frame.</sub>
+      <br><strong>01 · Start with the Framelo workflow</strong><br>
+      <sub>The landing page introduces the browser-based studio and its create, animate and showcase loop.</sub>
     </td>
     <td width="50%">
       <a href="docs/screenshots/02-project-dashboard.png">
         <img src="docs/screenshots/02-project-dashboard.png" alt="Framelo project dashboard" width="100%">
       </a>
       <br><strong>02 · Keep every project close</strong><br>
-      <sub>A local-first dashboard for creating, reopening and managing compositions.</sub>
+      <sub>The local-first dashboard keeps saved compositions ready to reopen, refine or duplicate.</sub>
     </td>
   </tr>
   <tr>
@@ -115,14 +121,14 @@ and export a polished motion piece.
         <img src="docs/screenshots/03-create-project.png" alt="Framelo create project screen" width="100%">
       </a>
       <br><strong>03 · Define the scene</strong><br>
-      <sub>Choose the device, canvas, background and starting motion before entering the studio.</sub>
+      <sub>Choose a device, canvas, background and starting motion before entering the studio.</sub>
     </td>
     <td>
       <a href="docs/screenshots/04-editor-devices.png">
         <img src="docs/screenshots/04-editor-devices.png" alt="Framelo editor device controls" width="100%">
       </a>
-      <br><strong>04 · Shape the composition</strong><br>
-      <sub>Configure devices and properties from focused editor controls without the canvas distraction.</sub>
+      <br><strong>04 · Tune the composition</strong><br>
+      <sub>A focused crop keeps the device list, screen media, visual filters and camera presets easy to read.</sub>
     </td>
   </tr>
 </table>
