@@ -141,6 +141,13 @@ export default function LandingPage() {
       <footer className="landing-footer"><div className="landing-footer__top"><Link href="/" className="framelo-hero__logo"><span className="framelo-hero__logo-mark"><span /></span>FRAMELO</Link><p>Create. Animate. Showcase.</p><a href="/dashboard">Start creating <ArrowIcon /></a></div><div className="landing-footer__bottom"><span>© 2026 Framelo. Built for better product stories.</span><nav><a href="#workflow">Workflow</a><a href="#features">Features</a><a href="#showcase">Showcase</a><a href="/portfolio">Portfolio</a></nav><span>Local-first · Browser-based</span></div></footer>
 
       <style jsx>{`
+        :global(html), :global(body) { margin: 0; min-width: 0; background: #08080a; }
+        :global(body) { overflow-x: hidden; }
+        :global(::-webkit-scrollbar) { width: 10px; height: 10px; }
+        :global(::-webkit-scrollbar-track) { background: #08080a; }
+        :global(::-webkit-scrollbar-thumb) { border: 3px solid #08080a; border-radius: 999px; background: #34343e; }
+        :global(::-webkit-scrollbar-thumb:hover) { background: #4a4a58; }
+        :global(*) { scrollbar-color: #34343e #08080a; scrollbar-width: thin; }
         .framelo-landing { overflow-x: hidden; background: #08080a; color: #f5f5f7; font-family: var(--framelo-font-sans), ui-sans-serif, system-ui, sans-serif; user-select: none; -webkit-user-select: none; }
         .framelo-hero { position: relative; min-height: 100dvh; overflow: hidden; isolation: isolate; }
         .framelo-hero__background, .framelo-hero__video { position: absolute; inset: 0; }
