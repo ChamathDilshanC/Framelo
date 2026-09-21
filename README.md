@@ -92,11 +92,11 @@ The quickest way to understand Framelo is to see the full creative workflow:
 start with a blank project, choose a device composition, refine every layer,
 and export a polished motion piece.
 
-The gallery keeps the original full-browser captures for the product journey,
-template categories and scene previews. The editor controls capture is the one
-intentional exception: `04-editor-devices.png` is tightly framed around the
-device list, media controls and properties panel so those controls stay
-readable at README scale.
+The gallery keeps the product journey captures clean and focused. Template
+categories and premium scene previews are framed to the template modal, with
+the surrounding editor canvas removed. The editor controls capture is also
+tightly framed around the device list, media controls and properties panel so
+those controls stay readable at README scale.
 
 <table>
   <tr>
