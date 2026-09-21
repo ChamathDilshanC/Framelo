@@ -1,190 +1,229 @@
-import {
-  ArrowUpRight,
-  Boxes,
-  Clapperboard,
-  Gauge,
-  ImageDown,
-  Layers,
-  MousePointerClick,
-  Play,
-  Sparkles,
-} from "lucide-react";
+"use client";
 
-import { Wordmark } from "@/components/brand/Logo";
-import { HeroPreviewLoader } from "@/components/landing/HeroPreviewLoader";
-import { ProjectLauncher } from "@/components/landing/ProjectLauncher";
-import { APP_TAGLINE } from "@/lib/constants";
+import * as React from "react";
+import { ArrowRight, Menu, X } from "lucide-react";
+import Link from "next/link";
 
-const FEATURES = [
-  {
-    icon: Boxes,
-    title: "Photoreal device scenes",
-    body: "Place your work inside iPhone, iPad and MacBook compositions with editable finishes, lighting and camera views.",
-  },
-  {
-    icon: Clapperboard,
-    title: "Motion that feels intentional",
-    body: "Animate position, rotation, scale and opacity on a real keyframe timeline with easing and precise scrubbing.",
-  },
-  {
-    icon: MousePointerClick,
-    title: "A studio that stays direct",
-    body: "Drag, tune and preview the scene without leaving the canvas. Every control is connected to the composition.",
-  },
-  {
-    icon: Layers,
-    title: "Templates, not dead ends",
-    body: "Start from responsive mobile, tablet, laptop or multi-device scenes, then edit every layer to make it yours.",
-  },
-  {
-    icon: ImageDown,
-    title: "From screen to showcase",
-    body: "Drop in image or video media, fit it to each screen and export the finished frame or motion piece.",
-  },
-  {
-    icon: Gauge,
-    title: "Local-first by design",
-    body: "Your projects save in the browser as you work. No account or backend is required to make something beautiful.",
-  },
-];
+const VIDEO_URL =
+  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260912_104036_bd6924f6-3c8e-417e-8465-6d03c8c2e9e6.mp4";
+const POSTER_URL =
+  "https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/82e7eb75-c65f-490a-99b5-f3d1cad54200.webp";
 
-const STEPS = [
-  ["01", "Bring your screen", "Upload a PNG, JPG, WebP, MP4 or WebM into the asset library."],
-  ["02", "Build the scene", "Choose a device, template, background and camera view."],
-  ["03", "Add the motion", "Key values, shape the timing and preview the complete composition."],
-  ["04", "Share the result", "Export a still or video, then publish when the piece is ready."],
-];
+function ArrowIcon() {
+  return <ArrowRight aria-hidden className="h-4 w-4" strokeWidth={1.6} />;
+}
 
 export default function LandingPage() {
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  const firstVideo = React.useRef<HTMLVideoElement>(null);
+  const secondVideo = React.useRef<HTMLVideoElement>(null);
+
+  React.useEffect(() => {
+    const current = firstVideo.current;
+    const next = secondVideo.current;
+    if (!current || !next || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      current?.pause();
+      next?.pause();
+      return;
+    }
+
+    let active = current;
+    let standby = next;
+    let swapping = false;
+
+    const play = (video: HTMLVideoElement) => {
+      void video.play().catch(() => undefined);
+    };
+    const tick = () => {
+      if (swapping || !active.duration || active.duration - active.currentTime > 0.9) return;
+      swapping = true;
+      const outgoing = active;
+      standby.currentTime = 0;
+      play(standby);
+      standby.classList.add("is-active");
+      outgoing.classList.remove("is-active");
+      [active, standby] = [standby, outgoing];
+      window.setTimeout(() => {
+        outgoing.pause();
+        outgoing.currentTime = 0;
+        swapping = false;
+      }, 1000);
+    };
+
+    current.addEventListener("timeupdate", tick);
+    next.addEventListener("timeupdate", tick);
+    play(current);
+    return () => {
+      current.removeEventListener("timeupdate", tick);
+      next.removeEventListener("timeupdate", tick);
+    };
+  }, []);
+
+  React.useEffect(() => {
+    const close = (event: MouseEvent) => {
+      if (!(event.target as HTMLElement).closest("[data-menu-root]")) setMenuOpen(false);
+    };
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, []);
+
   return (
-    <div className="min-h-dvh overflow-hidden bg-canvas">
-      <header className="absolute inset-x-0 top-0 z-40">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-10">
-          <Wordmark />
-          <nav className="hidden items-center gap-8 text-[12px] text-ink-muted md:flex">
-            <a href="#workflow" className="transition-colors hover:text-ink">Workflow</a>
-            <a href="#features" className="transition-colors hover:text-ink">Features</a>
-            <a href="#templates" className="transition-colors hover:text-ink">Templates</a>
-          </nav>
-          <a
-            href="/dashboard"
-            className="inline-flex h-9 items-center gap-2 rounded-full bg-ink px-4 text-[12px] font-medium text-canvas transition-transform hover:-translate-y-0.5"
-          >
-            Open studio
-            <ArrowUpRight className="h-3.5 w-3.5" />
-          </a>
+    <main className="framelo-hero">
+      <div
+        className="framelo-hero__background"
+        role="img"
+        aria-label="Animated abstract orbital artwork"
+      >
+        <video
+          ref={firstVideo}
+          className="framelo-hero__video is-active"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          poster={POSTER_URL}
+          aria-hidden
+        >
+          <source src={VIDEO_URL} type="video/mp4" />
+        </video>
+        <video
+          ref={secondVideo}
+          className="framelo-hero__video"
+          muted
+          loop
+          playsInline
+          preload="auto"
+          poster={POSTER_URL}
+          aria-hidden
+        >
+          <source src={VIDEO_URL} type="video/mp4" />
+        </video>
+      </div>
+
+      <header className="framelo-hero__nav" data-menu-root>
+        <Link href="/" className="framelo-hero__logo" aria-label="Framelo home">
+          <span className="framelo-hero__logo-mark" aria-hidden>
+            <span />
+          </span>
+          FRAMELO
+        </Link>
+        <nav className="framelo-hero__links" aria-label="Primary">
+          <a href="#workflow">Workflow</a>
+          <a href="#features">Features</a>
+          <a href="/dashboard">Studio</a>
+          <a href="/portfolio">Showcase</a>
+        </nav>
+        <div className="framelo-hero__actions">
+          <a href="/dashboard" className="framelo-hero__login">Open studio</a>
+          <a href="/dashboard" className="framelo-hero__nav-cta">Create a mockup <ArrowIcon /></a>
         </div>
+        <button
+          type="button"
+          className="framelo-hero__burger"
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          {menuOpen ? <X /> : <Menu />}
+        </button>
+        {menuOpen ? (
+          <nav className="framelo-hero__mobile-menu" aria-label="Mobile">
+            <a href="#workflow" onClick={() => setMenuOpen(false)}>Workflow</a>
+            <a href="#features" onClick={() => setMenuOpen(false)}>Features</a>
+            <a href="/portfolio">Showcase</a>
+            <a href="/dashboard" className="framelo-hero__mobile-cta">Create a mockup <ArrowIcon /></a>
+          </nav>
+        ) : null}
       </header>
 
-      <main>
-        <section className="relative isolate min-h-[760px] overflow-hidden border-b border-line">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_35%,color-mix(in_oklab,var(--color-accent)_18%,transparent),transparent_34%),radial-gradient(circle_at_20%_10%,color-mix(in_oklab,var(--color-accent)_8%,transparent),transparent_30%)]" />
-          <div className="relative mx-auto grid min-h-[760px] max-w-7xl items-center gap-8 px-6 pb-14 pt-28 lg:grid-cols-[0.9fr_1.1fr] lg:px-10 lg:pt-20">
-            <div className="relative z-10 max-w-xl">
-              <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-line bg-surface/70 px-3 py-1.5 text-[11px] text-ink-muted backdrop-blur">
-                <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-                Device mockup &amp; animation studio
-              </div>
-              <h1 className="max-w-[620px] text-[clamp(3.5rem,8vw,7.3rem)] leading-[0.88] font-semibold tracking-[-0.065em] text-ink">
-                Make your
-                <br />
-                work <span className="text-accent">move.</span>
-              </h1>
-              <p className="mt-8 max-w-md text-[15px] leading-7 text-ink-muted">
-                Framelo turns a flat screen into a finished product story. Build a
-                photoreal device scene, animate it on a real timeline and export
-                something worth showing.
-              </p>
-              <div className="mt-8">
-                <ProjectLauncher />
-              </div>
-              <div className="mt-8 flex flex-wrap items-center gap-3 text-[11px] text-ink-subtle">
-                <span className="rounded-full border border-line px-3 py-1.5">Runs in your browser</span>
-                <span className="rounded-full border border-line px-3 py-1.5">No account required</span>
-                <span className="rounded-full border border-line px-3 py-1.5">WebGL2</span>
-              </div>
-            </div>
+      <section className="framelo-hero__content" aria-labelledby="hero-title">
+        <p className="framelo-hero__eyebrow">Create. Animate. Showcase.</p>
+        <h1 id="hero-title">
+          <span>Turn screens</span>
+          <span>into stories.</span>
+        </h1>
+        <p className="framelo-hero__summary">
+          Build polished device mockups in the browser. Place your work on a
+          photoreal scene, animate every layer and export a finished frame.
+        </p>
+        <div className="framelo-hero__ctas">
+          <a href="/dashboard" className="framelo-hero__primary">Start creating <ArrowIcon /></a>
+          <a href="/portfolio" className="framelo-hero__secondary">Explore the showcase <ArrowIcon /></a>
+        </div>
+      </section>
 
-            <div className="relative mx-auto h-[520px] w-full max-w-[660px] lg:h-[680px]">
-              <div aria-hidden className="absolute inset-[15%] rounded-full bg-accent/15 blur-[90px]" />
-              <div className="absolute inset-0 rounded-[32px] border border-line/70 bg-surface/20 shadow-2xl shadow-black/20 backdrop-blur-[2px]" />
-              <div className="absolute inset-3 overflow-hidden rounded-[26px]">
-                <HeroPreviewLoader />
-              </div>
-              <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between rounded-xl border border-white/10 bg-black/45 px-4 py-3 text-[11px] text-white/70 backdrop-blur-md">
-                <span className="flex items-center gap-2"><Play className="h-3 w-3 fill-current text-accent" /> Live scene preview</span>
-                <span>iPhone 15 Pro Max · 60 fps</span>
-              </div>
-            </div>
-          </div>
-        </section>
+      <div className="framelo-hero__hint" aria-hidden>
+        <span className="framelo-hero__hint-line" />
+        Scroll to explore
+      </div>
 
-        <section id="workflow" className="border-b border-line">
-          <div className="mx-auto max-w-7xl px-6 py-20 lg:px-10">
-            <div className="mb-10 flex flex-col justify-between gap-5 md:flex-row md:items-end">
-              <div>
-                <p className="panel-label">The Framelo loop</p>
-                <h2 className="mt-3 max-w-lg text-3xl font-semibold tracking-[-0.04em] text-ink">
-                  From first upload to final frame.
-                </h2>
-              </div>
-              <p className="max-w-sm text-sm leading-6 text-ink-muted">{APP_TAGLINE} The complexity stays inside the product.</p>
-            </div>
-            <ol className="grid overflow-hidden rounded-2xl border border-line bg-line md:grid-cols-4">
-              {STEPS.map(([number, title, body]) => (
-                <li key={number} className="border-b border-line bg-surface p-6 last:border-0 md:border-b-0 md:border-r md:last:border-0">
-                  <span className="numeric text-accent">{number}</span>
-                  <h3 className="mt-8 text-sm font-medium text-ink">{title}</h3>
-                  <p className="mt-2 text-xs leading-5 text-ink-muted">{body}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
+      <section id="workflow" className="sr-only">
+        <h2>Framelo workflow</h2>
+        <p>Upload a screen, place it on a device, animate the scene and export the result.</p>
+      </section>
+      <section id="features" className="sr-only">
+        <h2>Framelo features</h2>
+        <p>Photoreal devices, real keyframes, editable templates and local-first projects.</p>
+      </section>
 
-        <section id="features" className="border-b border-line">
-          <div className="mx-auto max-w-7xl px-6 py-20 lg:px-10">
-            <div className="mb-10 max-w-xl">
-              <p className="panel-label">Inside the studio</p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-ink">
-                Everything you need to make the frame feel real.
-              </h2>
-            </div>
-            <div className="grid gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
-              {FEATURES.map((feature) => (
-                <article key={feature.title} className="bg-surface p-6 transition-colors hover:bg-surface-hover">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-surface-raised">
-                    <feature.icon className="h-4 w-4 text-accent" />
-                  </span>
-                  <h3 className="mt-6 text-sm font-medium text-ink">{feature.title}</h3>
-                  <p className="mt-2 text-xs leading-5 text-ink-muted">{feature.body}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section id="templates" className="border-b border-line">
-          <div className="mx-auto flex max-w-7xl flex-col gap-8 px-6 py-20 lg:flex-row lg:items-end lg:justify-between lg:px-10">
-            <div className="max-w-xl">
-              <p className="panel-label">Start with momentum</p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-ink">A better first frame is already waiting.</h2>
-              <p className="mt-4 text-sm leading-6 text-ink-muted">
-                Explore mobile, tablet, laptop and multi-device templates, then replace every screen, layer and motion track with your own.
-              </p>
-            </div>
-            <a href="/dashboard" className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-accent px-5 text-sm font-medium text-accent-ink transition-colors hover:bg-accent-hover">
-              Explore templates
-              <Sparkles className="h-4 w-4" />
-            </a>
-          </div>
-        </section>
-      </main>
-
-      <footer className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-10 sm:flex-row sm:items-center sm:justify-between lg:px-10">
-        <Wordmark showTagline />
-        <p className="text-[11px] text-ink-subtle">Projects and media stay local in your browser by default.</p>
-      </footer>
-    </div>
+      <style jsx>{`
+        .framelo-hero {
+          --hero-unit: min(calc(100vw / 1280), calc(100dvh / 760));
+          position: relative;
+          min-height: 100dvh;
+          overflow: hidden;
+          background: #050507;
+          color: #fff;
+          isolation: isolate;
+          font-family: var(--framelo-font-sans), ui-sans-serif, system-ui, sans-serif;
+        }
+        .framelo-hero__background, .framelo-hero__video { position: absolute; inset: 0; }
+        .framelo-hero__background { z-index: -2; background: #050507; }
+        .framelo-hero__video { width: 100%; height: 100%; object-fit: cover; object-position: 51% 45%; opacity: 0; transition: opacity .9s linear; pointer-events: none; }
+        .framelo-hero__video.is-active { opacity: 1; }
+        .framelo-hero__background::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,0,0,.72), transparent 66%), linear-gradient(0deg, rgba(0,0,0,.56), transparent 48%); pointer-events: none; }
+        .framelo-hero__nav { position: absolute; inset: 0 0 auto; height: 74px; display: flex; align-items: center; gap: 30px; padding: 0 4vw; z-index: 3; }
+        .framelo-hero__logo { display: flex; align-items: center; gap: 10px; color: #fff; font-size: 13px; font-weight: 700; letter-spacing: .18em; text-decoration: none; }
+        .framelo-hero__logo-mark { display: grid; place-items: center; width: 23px; height: 23px; border: 1px solid rgba(255,255,255,.6); border-radius: 7px; }
+        .framelo-hero__logo-mark span { width: 7px; height: 12px; border-radius: 2px; background: #a78bfa; }
+        .framelo-hero__links { position: absolute; left: 50%; display: flex; gap: 28px; transform: translateX(-50%); }
+        .framelo-hero__links a, .framelo-hero__login { color: rgba(255,255,255,.7); font-size: 12px; text-decoration: none; transition: color .2s; }
+        .framelo-hero__links a:hover, .framelo-hero__login:hover { color: #fff; }
+        .framelo-hero__actions { display: flex; align-items: center; gap: 9px; margin-left: auto; }
+        .framelo-hero__nav-cta, .framelo-hero__primary { display: inline-flex; align-items: center; gap: 9px; border-radius: 999px; background: #fff; color: #09090b; text-decoration: none; font-size: 12px; font-weight: 600; }
+        .framelo-hero__nav-cta { padding: 10px 15px; }
+        .framelo-hero__content { position: absolute; top: 50%; left: 50%; width: min(650px, calc(100% - 48px)); transform: translate(-50%, -45%); text-align: center; }
+        .framelo-hero__eyebrow { margin: 0 0 20px; color: rgba(255,255,255,.72); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; }
+        .framelo-hero__content h1 { margin: 0; font-size: clamp(54px, calc(91 * var(--hero-unit)), 116px); font-weight: 500; line-height: .94; letter-spacing: -.065em; }
+        .framelo-hero__content h1 span { display: block; }
+        .framelo-hero__content h1 span:last-child { color: #c4b5fd; }
+        .framelo-hero__summary { max-width: 510px; margin: 24px auto 0; color: rgba(255,255,255,.86); font-size: clamp(15px, calc(17 * var(--hero-unit)), 18px); line-height: 1.55; }
+        .framelo-hero__ctas { display: flex; justify-content: center; gap: 9px; margin-top: 27px; }
+        .framelo-hero__primary, .framelo-hero__secondary { min-height: 43px; padding: 0 19px; }
+        .framelo-hero__secondary { display: inline-flex; align-items: center; gap: 9px; border: 1px solid rgba(255,255,255,.16); border-radius: 999px; background: rgba(0,0,0,.48); color: rgba(255,255,255,.86); text-decoration: none; font-size: 12px; backdrop-filter: blur(8px); }
+        .framelo-hero__hint { position: absolute; bottom: 28px; left: 4vw; display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,.54); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; }
+        .framelo-hero__hint-line { display: block; width: 32px; height: 1px; background: rgba(255,255,255,.45); }
+        .framelo-hero__burger, .framelo-hero__mobile-menu { display: none; }
+        @media (prefers-reduced-motion: reduce) { .framelo-hero__video { transition: none; } }
+        @media (max-width: 760px) {
+          .framelo-hero { --hero-unit: 1px; }
+          .framelo-hero__nav { height: 62px; padding: 0 20px; }
+          .framelo-hero__links, .framelo-hero__actions { display: none; }
+          .framelo-hero__burger { display: grid; place-items: center; width: 38px; height: 34px; margin-left: auto; border: 1px solid rgba(255,255,255,.16); border-radius: 999px; background: rgba(0,0,0,.45); color: #fff; }
+          .framelo-hero__burger svg { width: 16px; }
+          .framelo-hero__mobile-menu { position: absolute; top: 58px; right: 16px; display: flex; width: min(290px, calc(100vw - 32px)); flex-direction: column; gap: 4px; padding: 9px; border: 1px solid rgba(255,255,255,.12); border-radius: 17px; background: rgba(8,8,10,.88); backdrop-filter: blur(22px); box-shadow: 0 24px 60px rgba(0,0,0,.5); }
+          .framelo-hero__mobile-menu a { padding: 12px; border-radius: 10px; color: rgba(255,255,255,.78); font-size: 14px; text-decoration: none; }
+          .framelo-hero__mobile-menu a:hover { background: rgba(255,255,255,.08); color: #fff; }
+          .framelo-hero__mobile-cta { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 5px; background: #fff; color: #09090b !important; }
+          .framelo-hero__content { transform: translate(-50%, -48%); }
+          .framelo-hero__content h1 { font-size: clamp(54px, 15vw, 82px); }
+          .framelo-hero__summary { font-size: 15px; }
+          .framelo-hero__ctas { flex-wrap: wrap; }
+          .framelo-hero__hint { left: 20px; bottom: 20px; }
+        }
+        @media (max-width: 390px) { .framelo-hero__ctas { flex-direction: column; align-items: stretch; } .framelo-hero__primary, .framelo-hero__secondary { justify-content: center; } }
+      `}</style>
+    </main>
   );
 }
