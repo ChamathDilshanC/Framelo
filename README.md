@@ -122,7 +122,7 @@ and export a polished motion piece.
         <img src="docs/screenshots/04-editor-devices.png" alt="Framelo editor device controls" width="100%">
       </a>
       <br><strong>04 · Shape the composition</strong><br>
-      <sub>Work directly with 3D devices, layers, transforms and a real animation timeline.</sub>
+      <sub>Configure devices and properties from focused editor controls without the canvas distraction.</sub>
     </td>
   </tr>
 </table>
