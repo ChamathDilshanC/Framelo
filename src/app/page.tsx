@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { ArrowRight, Check, Menu, X } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 const VIDEO_URL =
@@ -26,10 +27,10 @@ const FEATURES = [
 ];
 
 const SHOWCASE = [
-  { name: "Crimson Editorial", type: "Tablet scene", tone: "crimson", copy: "A sculpted editorial frame for ideas with presence." },
-  { name: "Midnight Sales", type: "Laptop scene", tone: "midnight", copy: "Burnt-orange momentum for a product story with depth." },
-  { name: "Amber Agency", type: "Multi-device", tone: "amber", copy: "Three independent screens, one coordinated campaign." },
-  { name: "Lime Digital", type: "Multi-device", tone: "lime", copy: "A bright, expansive composition built to move." },
+  { name: "Crimson Editorial", type: "Tablet scene", tone: "crimson", image: "/templates/studio/crimson-editorial.svg", copy: "A sculpted editorial frame for ideas with presence." },
+  { name: "Midnight Sales", type: "Laptop scene", tone: "midnight", image: "/templates/studio/midnight-sales.svg", copy: "Burnt-orange momentum for a product story with depth." },
+  { name: "Amber Agency", type: "Multi-device", tone: "amber", image: "/templates/studio/amber-agency.svg", copy: "Three independent screens, one coordinated campaign." },
+  { name: "Lime Digital", type: "Multi-device", tone: "lime", image: "/templates/studio/lime-campaign.svg", copy: "A bright, expansive composition built to move." },
 ];
 
 function ArrowIcon() {
@@ -38,6 +39,9 @@ function ArrowIcon() {
 
 export default function LandingPage() {
   const [menuOpen, setMenuOpen] = React.useState(false);
+  const [isDragging, setIsDragging] = React.useState(false);
+  const showcaseRail = React.useRef<HTMLDivElement>(null);
+  const dragState = React.useRef({ startX: 0, startScrollLeft: 0 });
   const firstVideo = React.useRef<HTMLVideoElement>(null);
   const secondVideo = React.useRef<HTMLVideoElement>(null);
 
@@ -54,6 +58,28 @@ export default function LandingPage() {
     nodes.forEach((node) => observer.observe(node));
     return () => observer.disconnect();
   }, []);
+
+  const handleRailPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    const rail = showcaseRail.current;
+    if (!rail) return;
+    dragState.current = { startX: event.clientX, startScrollLeft: rail.scrollLeft };
+    setIsDragging(true);
+    rail.setPointerCapture(event.pointerId);
+  };
+
+  const handleRailPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    const rail = showcaseRail.current;
+    if (!rail || !isDragging) return;
+    rail.scrollLeft = dragState.current.startScrollLeft - (event.clientX - dragState.current.startX);
+  };
+
+  const stopRailDragging = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    if (showcaseRail.current?.hasPointerCapture(event.pointerId)) {
+      showcaseRail.current.releasePointerCapture(event.pointerId);
+    }
+  };
 
   React.useEffect(() => {
     const current = firstVideo.current;
@@ -141,7 +167,7 @@ export default function LandingPage() {
 
       <section id="showcase" className="landing-section showcase-section" data-reveal>
         <div className="landing-shell"><div className="showcase-heading"><div><p className="section-kicker">Made in Framelo</p><h2>Start with a strong<br /><em>point of view.</em></h2></div><a href="/portfolio">View full showcase <ArrowIcon /></a></div></div>
-        <div className="showcase-rail">{SHOWCASE.map((item) => <article className={`showcase-card showcase-card--${item.tone}`} key={item.name}><div className="showcase-card__art"><span>{item.name.split(" ")[0]}</span><strong>{item.name.split(" ").slice(1).join(" ")}</strong><div className="showcase-device" /></div><div className="showcase-card__meta"><span>{item.type}</span><h3>{item.name}</h3><p>{item.copy}</p></div></article>)}</div>
+        <div className={`showcase-rail${isDragging ? " is-dragging" : ""}`} ref={showcaseRail} onPointerDown={handleRailPointerDown} onPointerMove={handleRailPointerMove} onPointerUp={stopRailDragging} onPointerCancel={stopRailDragging}>{SHOWCASE.map((item) => <article className={`showcase-card showcase-card--${item.tone}`} key={item.name}><div className="showcase-card__art"><Image src={item.image} alt={`${item.name} template preview`} fill sizes="(max-width: 760px) 78vw, 430px" /><span>{item.name.split(" ")[0]}</span><strong>{item.name.split(" ").slice(1).join(" ")}</strong></div><div className="showcase-card__meta"><span>{item.type}</span><h3>{item.name}</h3><p>{item.copy}</p></div></article>)}</div>
         <p className="rail-hint"><span /> Drag or scroll horizontally to explore</p>
       </section>
 
@@ -201,9 +227,12 @@ export default function LandingPage() {
         .showcase-section { padding-bottom: 40px; }
         .showcase-heading { display: flex; align-items: end; justify-content: space-between; gap: 30px; }
         .showcase-heading > a { display: inline-flex; align-items: center; gap: 9px; color: #c4b5fd; font-size: 12px; text-decoration: none; }
-        .showcase-rail { display: flex; gap: 18px; overflow-x: auto; margin-top: 70px; padding: 0 max(24px, calc((100vw - 1180px) / 2)) 20px; scroll-snap-type: x mandatory; scrollbar-width: thin; scrollbar-color: #3b3b46 transparent; }
+        .showcase-rail { display: flex; gap: 18px; overflow-x: auto; margin-top: 70px; padding: 0 max(24px, calc((100vw - 1180px) / 2)) 20px; scroll-snap-type: x mandatory; scrollbar-width: thin; scrollbar-color: #3b3b46 transparent; cursor: grab; touch-action: pan-y; }
+        .showcase-rail.is-dragging { cursor: grabbing; scroll-snap-type: none; }
         .showcase-card { flex: 0 0 min(430px, 78vw); scroll-snap-align: start; overflow: hidden; border: 1px solid #2a2a31; border-radius: 18px; background: #111116; }
         .showcase-card__art { position: relative; display: flex; min-height: 350px; flex-direction: column; justify-content: end; overflow: hidden; padding: 28px; }
+        .showcase-card__art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .72; transition: transform .5s ease, opacity .3s ease; pointer-events: none; }
+        .showcase-card:hover .showcase-card__art img { opacity: .9; transform: scale(1.04); }
         .showcase-card__art::before { content: ""; position: absolute; inset: 12% 14%; border: 1px solid rgba(255,255,255,.18); border-radius: 38% 42% 20% 25%; transform: rotate(-12deg); opacity: .7; }
         .showcase-card__art::after { content: ""; position: absolute; width: 190px; height: 270px; right: 20%; top: 16%; border: 8px solid rgba(255,255,255,.7); border-radius: 26px; transform: rotate(13deg); box-shadow: 0 20px 60px rgba(0,0,0,.4); }
         .showcase-card--crimson .showcase-card__art { background: linear-gradient(140deg, #160c12, #852e3a); }
