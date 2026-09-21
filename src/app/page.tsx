@@ -39,9 +39,8 @@ function ArrowIcon() {
 
 export default function LandingPage() {
   const [menuOpen, setMenuOpen] = React.useState(false);
-  const [isDragging, setIsDragging] = React.useState(false);
-  const showcaseRail = React.useRef<HTMLDivElement>(null);
-  const dragState = React.useRef({ startX: 0, startScrollLeft: 0 });
+  const showcaseSection = React.useRef<HTMLElement>(null);
+  const showcaseCards = React.useRef<Array<HTMLElement | null>>([]);
   const firstVideo = React.useRef<HTMLVideoElement>(null);
   const secondVideo = React.useRef<HTMLVideoElement>(null);
 
@@ -59,27 +58,52 @@ export default function LandingPage() {
     return () => observer.disconnect();
   }, []);
 
-  const handleRailPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    const rail = showcaseRail.current;
-    if (!rail) return;
-    dragState.current = { startX: event.clientX, startScrollLeft: rail.scrollLeft };
-    setIsDragging(true);
-    rail.setPointerCapture(event.pointerId);
-  };
-
-  const handleRailPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    const rail = showcaseRail.current;
-    if (!rail || !isDragging) return;
-    rail.scrollLeft = dragState.current.startScrollLeft - (event.clientX - dragState.current.startX);
-  };
-
-  const stopRailDragging = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDragging) return;
-    setIsDragging(false);
-    if (showcaseRail.current?.hasPointerCapture(event.pointerId)) {
-      showcaseRail.current.releasePointerCapture(event.pointerId);
-    }
-  };
+  React.useEffect(() => {
+    const section = showcaseSection.current;
+    if (!section) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let frame = 0;
+    const updateWaterfall = () => {
+      frame = 0;
+      const range = Math.max(section.offsetHeight - window.innerHeight, 1);
+      const progress = Math.min(1, Math.max(0, (window.scrollY - section.offsetTop) / range));
+      const compact = window.innerWidth < 760;
+      const step = compact ? 0.24 : 0.2;
+      const width = window.innerWidth;
+      showcaseCards.current.forEach((card, index) => {
+        if (!card) return;
+        card.style.marginLeft = `${-card.offsetWidth / 2}px`;
+        const phase = progress / step - index + 0.35;
+        const enter = Math.min(1, Math.max(0, phase));
+        const exit = Math.min(1, Math.max(0, phase - 0.72) / 0.58);
+        const xStart = compact ? -12 : -16;
+        const xFocus = compact ? -3 : -5;
+        const xExit = compact ? 10 : 23;
+        const yStart = compact ? -17 : -22;
+        const yFocus = compact ? 0 : -2;
+        const yExit = compact ? 58 : 66;
+        const x = (xStart + (xFocus - xStart) * enter + (xExit - xFocus) * exit) * (width / 100);
+        const y = yStart + (yFocus - yStart) * enter + (yExit - yFocus) * exit;
+        const scale = 0.88 + 0.12 * enter - 0.1 * exit;
+        const rotation = -4 + 4 * enter + 3 * exit;
+        const opacity = Math.min(1, enter * 1.7) * (1 - exit * 0.65);
+        card.style.transform = `translate3d(${x}px, ${y}vh, 0) scale(${scale}) rotate(${rotation}deg)`;
+        card.style.opacity = String(opacity);
+        card.style.zIndex = String(Math.round(20 + enter * 20 - exit * 10 - index));
+      });
+    };
+    const requestUpdate = () => {
+      if (!frame) frame = window.requestAnimationFrame(updateWaterfall);
+    };
+    updateWaterfall();
+    window.addEventListener("scroll", requestUpdate, { passive: true });
+    window.addEventListener("resize", requestUpdate);
+    return () => {
+      window.removeEventListener("scroll", requestUpdate);
+      window.removeEventListener("resize", requestUpdate);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
 
   React.useEffect(() => {
     const current = firstVideo.current;
@@ -165,10 +189,14 @@ export default function LandingPage() {
         <div className="landing-shell"><div className="section-heading section-heading--wide"><p className="section-kicker">Inside the studio</p><h2>Everything you need<br /><em>to make it real.</em></h2><p>Framelo is a full creative loop, not a static mockup generator. Every layer remains yours to edit.</p></div><div className="feature-grid">{FEATURES.map(([number, title, copy]) => <article key={number}><span>{number}</span><h3>{title}</h3><p>{copy}</p><Check aria-hidden /></article>)}</div></div>
       </section>
 
-      <section id="showcase" className="landing-section showcase-section" data-reveal>
-        <div className="landing-shell"><div className="showcase-heading"><div><p className="section-kicker">Made in Framelo</p><h2>Start with a strong<br /><em>point of view.</em></h2></div><a href="/portfolio">View full showcase <ArrowIcon /></a></div></div>
-        <div className={`showcase-rail${isDragging ? " is-dragging" : ""}`} ref={showcaseRail} onPointerDown={handleRailPointerDown} onPointerMove={handleRailPointerMove} onPointerUp={stopRailDragging} onPointerCancel={stopRailDragging}>{SHOWCASE.map((item) => <article className={`showcase-card showcase-card--${item.tone}`} key={item.name}><div className="showcase-card__art"><Image src={item.image} alt={`${item.name} template preview`} fill sizes="(max-width: 760px) 78vw, 430px" /><span>{item.name.split(" ")[0]}</span><strong>{item.name.split(" ").slice(1).join(" ")}</strong></div><div className="showcase-card__meta"><span>{item.type}</span><h3>{item.name}</h3><p>{item.copy}</p></div></article>)}</div>
-        <p className="rail-hint"><span /> Drag or scroll horizontally to explore</p>
+      <section id="showcase" ref={showcaseSection} className="landing-section showcase-section" data-reveal>
+        <div className="showcase-stage">
+          <div className="landing-shell showcase-heading"><div><p className="section-kicker">Made in Framelo</p><h2>Start with a strong<br /><em>point of view.</em></h2></div><a href="/portfolio">View full showcase <ArrowIcon /></a></div>
+          <div className="showcase-waterfall" aria-label="Framelo template showcase">
+            {SHOWCASE.map((item, index) => <article className={`showcase-card showcase-card--${item.tone}`} ref={(card) => { showcaseCards.current[index] = card; }} key={item.name}><div className="showcase-card__art"><Image src={item.image} alt={`${item.name} template preview`} fill sizes="(max-width: 760px) 86vw, 430px" /><span>{item.name.split(" ")[0]}</span><strong>{item.name.split(" ").slice(1).join(" ")}</strong></div><div className="showcase-card__meta"><span>{item.type}</span><h3>{item.name}</h3><p>{item.copy}</p></div></article>)}
+          </div>
+          <p className="rail-hint"><span /> Scroll to move through the showcase</p>
+        </div>
       </section>
 
       <section className="landing-cta" data-reveal><div><p className="section-kicker">Your next frame</p><h2>Make something<br /><em>worth replaying.</em></h2></div><a href="/dashboard">Open Framelo <ArrowIcon /></a></section>
@@ -224,16 +252,12 @@ export default function LandingPage() {
         .feature-grid article > span { color: #696978; font-size: 11px; }
         .feature-grid article h3 { margin-top: 48px; }
         .feature-grid svg { position: absolute; right: 26px; top: 26px; width: 15px; color: #9c8cff; }
-        .showcase-section { padding-bottom: 40px; }
+        .showcase-section { position: relative; height: 460vh; padding: 0; }
+        .showcase-stage { position: sticky; top: 0; height: 100vh; overflow: hidden; padding-top: 11vh; }
         .showcase-heading { display: flex; align-items: end; justify-content: space-between; gap: 30px; }
         .showcase-heading > a { display: inline-flex; align-items: center; gap: 9px; color: #c4b5fd; font-size: 12px; text-decoration: none; }
-        .showcase-rail { display: flex; gap: 18px; overflow-x: auto; margin-top: 70px; padding: 0 max(24px, calc((100vw - 1180px) / 2)) 20px; scroll-snap-type: x mandatory; scrollbar-width: thin; scrollbar-color: #3b3b46 transparent; cursor: grab; touch-action: pan-y; }
-        .showcase-rail.is-dragging { cursor: grabbing; scroll-snap-type: none; }
-        .showcase-card { flex: 0 0 min(430px, 78vw); scroll-snap-align: start; overflow: hidden; border: 1px solid #2a2a31; border-radius: 18px; background: #111116; opacity: 0; transform: translateY(34px) scale(.97); }
-        .showcase-section.is-visible .showcase-card { animation: showcaseCardIn .8s cubic-bezier(.22,1,.36,1) forwards; }
-        .showcase-section.is-visible .showcase-card:nth-child(2) { animation-delay: .1s; }
-        .showcase-section.is-visible .showcase-card:nth-child(3) { animation-delay: .2s; }
-        .showcase-section.is-visible .showcase-card:nth-child(4) { animation-delay: .3s; }
+        .showcase-waterfall { position: absolute; inset: 0; pointer-events: none; }
+        .showcase-card { position: absolute; top: 42vh; left: 50%; width: min(430px, 34vw); overflow: hidden; border: 1px solid #2a2a31; border-radius: 18px; background: #111116; will-change: transform, opacity; pointer-events: auto; }
         .showcase-card__art { position: relative; display: flex; min-height: 350px; flex-direction: column; justify-content: end; overflow: hidden; padding: 28px; }
         .showcase-card__art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .78; transition: transform .7s cubic-bezier(.22,1,.36,1), opacity .3s ease; pointer-events: none; animation: templateFloat 7s ease-in-out infinite; }
         .showcase-card:hover .showcase-card__art img { opacity: .9; transform: scale(1.04); }
@@ -250,7 +274,6 @@ export default function LandingPage() {
         .showcase-card__meta > span { color: #9c8cff; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; }
         .showcase-card__meta h3 { margin: 11px 0 7px; font-size: 18px; font-weight: 500; }
         .showcase-card__meta p { margin: 0; color: #858591; font-size: 12px; }
-        @keyframes showcaseCardIn { from { opacity: 0; transform: translateY(34px) scale(.97); } to { opacity: 1; transform: none; } }
         @keyframes templateFloat { 0%, 100% { transform: scale(1.01) translate3d(0, 0, 0); } 50% { transform: scale(1.045) translate3d(-1.2%, -1%, 0); } }
         @keyframes deviceFloat { 0%, 100% { transform: rotate(13deg) translateY(0); } 50% { transform: rotate(10deg) translateY(-8px); } }
         .rail-hint { width: min(1180px, calc(100% - 48px)); margin: 28px auto 0; display: flex; align-items: center; gap: 10px; color: #62626d; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; }
@@ -266,7 +289,7 @@ export default function LandingPage() {
         .landing-footer__bottom a:hover { color: #fff; }
         [data-reveal] { opacity: 0; transform: translateY(28px); transition: opacity .75s ease, transform .75s cubic-bezier(.22,1,.36,1); }
         [data-reveal].is-visible { opacity: 1; transform: none; }
-        @media (prefers-reduced-motion: reduce) { [data-reveal], .showcase-card { opacity: 1; transform: none; transition: none; animation: none !important; } .framelo-hero__video { transition: none; } }
+        @media (prefers-reduced-motion: reduce) { [data-reveal] { opacity: 1; transform: none; transition: none; } .showcase-section { height: auto; padding: 100px 0 40px; } .showcase-stage { position: relative; height: 780px; padding-top: 0; } .showcase-card { position: relative; top: auto; left: auto; width: min(430px, calc(100% - 48px)); margin: 24px auto 0; opacity: 1 !important; transform: none !important; } .showcase-waterfall { position: relative; inset: auto; } .framelo-hero__video { transition: none; } }
         @media (max-width: 760px) {
           .framelo-hero__nav { height: 62px; padding: 0 20px; }
           .framelo-hero__links, .framelo-hero__actions { display: none; }
@@ -280,6 +303,9 @@ export default function LandingPage() {
           .framelo-hero__summary { font-size: 15px; }
           .framelo-hero__ctas { flex-wrap: wrap; }
           .landing-section { padding: 80px 0; }
+          .showcase-section { height: 340vh; padding: 0; }
+          .showcase-stage { padding-top: 12vh; }
+          .showcase-card { width: min(430px, 78vw); top: 43vh; }
           .section-heading--wide, .showcase-heading, .landing-cta, .landing-footer__top, .landing-footer__bottom { align-items: flex-start; flex-direction: column; }
           .workflow-grid, .feature-grid { grid-template-columns: 1fr; margin-top: 45px; }
           .workflow-grid li { min-height: 190px; }
