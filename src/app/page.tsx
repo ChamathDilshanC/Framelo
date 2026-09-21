@@ -150,7 +150,7 @@ export default function LandingPage() {
       <footer className="landing-footer"><div className="landing-footer__top"><Link href="/" className="framelo-hero__logo"><span className="framelo-hero__logo-mark"><span /></span>FRAMELO</Link><p>Create. Animate. Showcase.</p><a href="/dashboard">Start creating <ArrowIcon /></a></div><div className="landing-footer__bottom"><span>© 2026 Framelo. Built for better product stories.</span><nav><a href="#workflow">Workflow</a><a href="#features">Features</a><a href="#showcase">Showcase</a><a href="/portfolio">Portfolio</a></nav><span>Local-first · Browser-based</span></div></footer>
 
       <style jsx>{`
-        .framelo-landing { overflow-x: hidden; background: #08080a; color: #f5f5f7; font-family: var(--framelo-font-sans), ui-sans-serif, system-ui, sans-serif; }
+        .framelo-landing { overflow-x: hidden; background: #08080a; color: #f5f5f7; font-family: var(--framelo-font-sans), ui-sans-serif, system-ui, sans-serif; user-select: none; -webkit-user-select: none; }
         .framelo-hero { position: relative; min-height: 100dvh; overflow: hidden; isolation: isolate; }
         .framelo-hero__background, .framelo-hero__video { position: absolute; inset: 0; }
         .framelo-hero__background { z-index: -2; background: #050507; }
