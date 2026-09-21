@@ -12,12 +12,7 @@ import { resolveBackgroundStyle } from "@/engine/background/resolve";
 import { buildTemplateLayers } from "@/engine/templates/template-builder";
 import type { ProjectTemplate } from "@/engine/templates/project-templates";
 import { templateScreenUrl } from "@/engine/templates/screen-artwork";
-
-function canCreateWebGL(): boolean {
-  if (typeof document === "undefined") return true;
-  const canvas = document.createElement("canvas");
-  return Boolean(canvas.getContext("webgl2") ?? canvas.getContext("webgl"));
-}
+import { useWebGLAvailable } from "@/lib/webgl";
 
 function StaticTemplatePreview({ template }: { template: ProjectTemplate }) {
   const artwork = template.deviceLayers?.[0]?.screenArtwork;
@@ -55,11 +50,7 @@ function StaticTemplatePreview({ template }: { template: ProjectTemplate }) {
 
 /** The actual model, screen assets, typography and camera used in the editor. */
 export function TemplatePreview({ template }: { template: ProjectTemplate }) {
-  const webglAvailable = React.useSyncExternalStore(
-    () => () => undefined,
-    canCreateWebGL,
-    () => true,
-  );
+  const webglAvailable = useWebGLAvailable();
   const layers = React.useMemo(() => buildTemplateLayers(template, null).layers, [template]);
   const started = React.useRef<number | null>(null);
   const getTime = React.useCallback(() => started.current === null

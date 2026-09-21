@@ -21,6 +21,7 @@ import { Alert } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
 import { useBackgroundAssetUrl } from "@/lib/hooks/use-background-asset";
 import { notify } from "@/lib/toast";
+import { useWebGLAvailable } from "@/lib/webgl";
 import type { BackgroundConfig } from "@/types/background";
 import type { Layer } from "@/types/layer";
 import type { CanvasConfig } from "@/types/project";
@@ -36,6 +37,7 @@ interface EditorCanvasProps {
  * what you see is exactly what gets exported.
  */
 export function EditorCanvas({ canvas, background, layers }: EditorCanvasProps) {
+  const webglAvailable = useWebGLAvailable();
   const [screenError, setScreenError] = React.useState<string | null>(null);
   const [dropTargetId, setDropTargetId] = React.useState<string | null>(null);
   const updateDeviceMetadata = useProjectStore((state) => state.updateDeviceMetadata);
@@ -92,7 +94,7 @@ export function EditorCanvas({ canvas, background, layers }: EditorCanvasProps) 
               </div>
             }
           >
-            {frame.width > 0 ? (
+            {webglAvailable && frame.width > 0 ? (
               <Canvas
                 className="!absolute inset-0"
                 dpr={[1, 2]}
@@ -125,7 +127,19 @@ export function EditorCanvas({ canvas, background, layers }: EditorCanvasProps) 
                 </React.Suspense>
               </Canvas>
             ) : (
-              <CanvasFallback />
+              webglAvailable ? <CanvasFallback /> : (
+                <div className="absolute inset-0 flex items-center justify-center bg-canvas p-6">
+                  <Alert
+                    tone="danger"
+                    title="3D viewport unavailable"
+                    className="max-w-sm"
+                  >
+                    WebGL is disabled in this browser environment. Enable hardware
+                    acceleration or use a WebGL-enabled browser to preview and export
+                    3D device scenes.
+                  </Alert>
+                </div>
+              )
             )}
           </ErrorBoundary>
 
