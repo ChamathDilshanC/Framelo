@@ -69,33 +69,31 @@ export const DeviceRenderer = React.memo(function DeviceRenderer({
 
   const metadata = (layer.metadata ?? {}) as Partial<DeviceLayerMetadata>;
   const device = getDevice(metadata.deviceId ?? "");
+  const missingMedia = Boolean(metadata.screenAssetId && !mediaUrl);
+  const defaultScreenUrl = templateScreenUrl(metadata.screenArtwork ?? (
+    device.category === "tablet" ? "studio-tablet" : device.category === "laptop" ? "studio-desktop" : undefined
+  ));
 
-  const [modelStatus, setModelStatus] = React.useState<DeviceModelStatus>("idle");
-  const [modelError, setModelError] = React.useState<string | null>(null);
-
+  const [modelState, setModelState] = React.useState<{ deviceId: string; status: DeviceModelStatus; error: string | null }>({ deviceId: device.id, status: "idle", error: null });
+  // Stale results cannot expose a fallback or the previous device on a switch.
+  const modelStatus = modelState.deviceId === device.id ? modelState.status : "idle";
+  const modelError = modelState.deviceId === device.id ? modelState.error : null;
   const wantsModel = Boolean(device.model) && !metadata.forceFallback;
   const usingFallback = !wantsModel || modelStatus === "error";
-  // Keep a usable phone visible while the imported model is downloading.
-  const showFallback = usingFallback || modelStatus !== "ready";
-
-  // Selecting a different device restarts the load, so the previous device's
-  // outcome must not linger and force a fallback on the new one.
-  React.useEffect(() => {
-    setModelStatus("idle");
-    setModelError(null);
-  }, [device.id, metadata.forceFallback]);
+  const showFallback = usingFallback;
 
   const handleModelStatus = React.useCallback(
     (status: DeviceModelStatus, error: string | null) => {
-      setModelStatus(status);
-      setModelError(error);
+      setModelState({ deviceId: device.id, status, error });
     },
-    [],
+    [device.id],
   );
 
   const handleMediaError = React.useCallback(
-    (message: string | null) => onScreenError?.(message),
-    [onScreenError],
+    (message: string | null) => onScreenError?.(missingMedia
+      ? "The saved screen media is unavailable on this device. Replace the missing media to restore this screen."
+      : message),
+    [onScreenError, missingMedia],
   );
 
   const handleModelReady = React.useCallback((model: PreparedDeviceModel | null) => {
@@ -184,13 +182,18 @@ export const DeviceRenderer = React.memo(function DeviceRenderer({
 
     // An imported model has ~90 meshes; walking them every frame to write an
     // unchanged opacity is pure waste.
-    if (transform.opacity !== lastOpacity.current) {
-      lastOpacity.current = transform.opacity;
-      applyOpacity(group, transform.opacity);
+    const model = preparedRef.current;
+    const started = model?.root.userData.revealStarted as number | undefined;
+    const reveal = started === undefined ? 1 : Math.min(1, (performance.now() - started) / 240);
+    const opacity = transform.opacity * (reveal * reveal * (3 - 2 * reveal));
+    if (reveal === 1) model?.root.userData.finishPreparation?.();
+    if (opacity !== lastOpacity.current) {
+      lastOpacity.current = opacity;
+      applyOpacity(group, opacity);
 
       // Crossing out of full opacity turns on the depth pre-pass, so a fading
       // device reads as translucent rather than hollow.
-      preparedRef.current?.setFading(transform.opacity < 1);
+      preparedRef.current?.setFading(opacity < 1);
     }
   });
 
@@ -210,13 +213,14 @@ export const DeviceRenderer = React.memo(function DeviceRenderer({
       onPointerOut={() => onDropTargetChange?.(null)}>
 
       {!getTime ? <mesh name="phone-hit-area" position={[0, 0, 0.02]}>
-        <planeGeometry args={[1.45, 3.02]} />
+        <planeGeometry args={[device.body.width, device.body.height]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} side={2} />
       </mesh> : null}
       {wantsModel && modelStatus !== "error" ? (
         <DeviceModel
+          key={device.id}
           device={device}
-          mediaUrl={mediaUrl ?? templateScreenUrl(metadata.screenArtwork)}
+          mediaUrl={mediaUrl ?? (missingMedia ? null : defaultScreenUrl)}
           mediaType={mediaType}
           getTime={getTime}
           getPlaying={getPlaying}
@@ -233,7 +237,7 @@ export const DeviceRenderer = React.memo(function DeviceRenderer({
       {showFallback ? (
         <FallbackDevice
           device={device}
-          mediaUrl={mediaUrl ?? templateScreenUrl(metadata.screenArtwork)}
+          mediaUrl={mediaUrl ?? (missingMedia ? null : defaultScreenUrl)}
           mediaType={mediaType}
           getTime={getTime}
           getPlaying={getPlaying}

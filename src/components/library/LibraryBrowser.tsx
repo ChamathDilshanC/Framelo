@@ -4,12 +4,11 @@ import * as React from "react";
 
 import { DeviceMotionBrowser } from "@/components/motion/DeviceMotionBrowser";
 import { MotionPresetBrowser } from "@/components/motion/MotionPresetBrowser";
-import { TemplateLibrary } from "@/components/templates/TemplateLibrary";
 import { cn } from "@/lib/utils";
 import { useEditorStore, type LibraryTab } from "@/store/editor-store";
 
 /**
- * The four libraries, in one panel.
+ * The three motion libraries, in one panel.
  *
  * They are genuinely different things and keeping them apart is the whole
  * architecture (§13), but *choosing* between them is one decision, so they
@@ -17,7 +16,6 @@ import { useEditorStore, type LibraryTab } from "@/store/editor-store";
  *
  * | Tab | What it changes | Reach |
  * |---|---|---|
- * | **Templates** | canvas, background, device, text, motion | the whole project |
  * | **Device Motion** | the device's pose and choreography | the device layer |
  * | **Motion Presets** | animation tracks | any layer, stackable |
  * | **Text Presets** | animation tracks on text | a text layer, stackable |
@@ -26,9 +24,14 @@ import { useEditorStore, type LibraryTab } from "@/store/editor-store";
  * question someone actually has when they open this is "which of these will
  * wreck what I have already done".
  *
- * Only the visible tab is mounted. Four browsers alive at once would mean four
- * search boxes, four sets of filters and — worse — a preview left running in a
- * tab nobody can see.
+ * Templates are deliberately *not* here. Everything in this panel adds motion
+ * to something that already exists; a template replaces the composition, and
+ * choosing one means comparing whole layouts — which needs the room the
+ * dedicated template browser gives it, not a 256-pixel column.
+ *
+ * Only the visible tab is mounted. Three browsers alive at once would mean
+ * three search boxes, three sets of filters and — worse — a preview left
+ * running in a tab nobody can see.
  */
 
 interface TabDefinition {
@@ -38,7 +41,6 @@ interface TabDefinition {
 }
 
 const TABS: TabDefinition[] = [
-  { id: "templates", label: "Templates", blurb: "A whole starting project." },
   { id: "device-motion", label: "Device Motion", blurb: "A finished device animation." },
   { id: "motion", label: "Motion Presets", blurb: "One effect, stackable." },
   { id: "text", label: "Text Presets", blurb: "Text animation, stackable." },
@@ -55,7 +57,7 @@ export function LibraryBrowser() {
       <div
         role="tablist"
         aria-label="Libraries"
-        className="grid shrink-0 grid-cols-2 gap-px border-b border-line bg-line"
+        className="grid shrink-0 grid-cols-3 gap-px border-b border-line bg-line"
       >
         {TABS.map((entry) => (
           <button
@@ -81,7 +83,6 @@ export function LibraryBrowser() {
       </p>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        {tab === "templates" ? <TemplateLibrary /> : null}
         {tab === "device-motion" ? <DeviceMotionBrowser /> : null}
         {tab === "motion" ? <MotionPresetBrowser scope="device" /> : null}
         {tab === "text" ? <MotionPresetBrowser scope="text" /> : null}

@@ -8,13 +8,13 @@ import { RightSidebar } from "@/components/editor/RightSidebar";
 import { ShortcutsDialog } from "@/components/editor/ShortcutsDialog";
 import { TopBar } from "@/components/editor/TopBar";
 import { ExportDialog } from "@/components/export/ExportDialog";
+import { TemplateBrowser } from "@/components/templates/TemplateBrowser";
 import { Timeline } from "@/components/timeline/Timeline";
 import { Alert } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
 import { useAutosave } from "@/lib/hooks/use-autosave";
 import { useDebugBridge } from "@/lib/hooks/use-debug-bridge";
 import { useKeyboardShortcuts } from "@/lib/hooks/use-keyboard-shortcuts";
-import { usePlayback } from "@/lib/hooks/use-playback";
 import { useProjectLoader } from "@/lib/hooks/use-project-loader";
 import { useProjectThumbnail } from "@/lib/hooks/use-project-thumbnail";
 import { useResponsivePanels } from "@/lib/hooks/use-responsive-panels";
@@ -36,7 +36,6 @@ export function EditorShell({ projectId }: EditorShellProps) {
   const duration = project?.canvas.duration ?? 5;
   const fps = project?.canvas.fps ?? 30;
 
-  usePlayback(duration);
   useAutosave();
   useKeyboardShortcuts(fps);
   useResponsivePanels();
@@ -87,6 +86,7 @@ export function EditorShell({ projectId }: EditorShellProps) {
 
       <ExportDialog />
       <ShortcutsDialog />
+      <TemplateBrowser />
     </div>
   );
 }

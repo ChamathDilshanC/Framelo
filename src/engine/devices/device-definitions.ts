@@ -226,11 +226,35 @@ export const IPHONE_17_PRO: DeviceDefinition = {
   },
 };
 
+/** Original studio models with dedicated, top-left UV display surfaces. */
+export const IPAD: DeviceDefinition = {
+  id: "ipad", name: "iPad", category: "tablet", available: true,
+  description: "Portrait aluminium tablet with an independently editable display.", ratioLabel: "11-inch",
+  body: { width: 2.16, height: 3, depth: 0.069, cornerRadius: 0.13, bezel: 0.1 },
+  screen: { width: 2.8 * 1668 / 2388, height: 2.8, cornerRadius: 0.095, position: [0, 0, 0.054], rotation: [0, 0, 0] },
+  screenAspect: 1668 / 2388, defaultCamera: { position: [0, 0.1, 7.6], target: [0, 0, 0], fov: 32 },
+  model: { path: "/devices/ipad.glb", screenMeshNames: ["Screen"], screenMaterialNames: ["Display"],
+    rotation: [0, 0, 0], normalizeHeight: 3, screenPixels: [1668, 2388],
+    roles: { Bezel: "glass", Keyboard: "sensor", Lens: "lens", Legend: "sensor" }, inset: { border: 0, radius: 0 } },
+};
+export const MACBOOK: DeviceDefinition = {
+  id: "macbook", name: "MacBook", category: "laptop", available: true,
+  description: "Open aluminium laptop with a modelled keyboard, trackpad and editable display.", ratioLabel: "16 : 10",
+  body: { width: 4.4, height: 3, depth: 2.8, cornerRadius: 0.06, bezel: 0.1 },
+  screen: { width: 4.12, height: 2.575, cornerRadius: 0.03, position: [0, 0, 0.054], rotation: [0, 0, 0] },
+  screenAspect: 16 / 10, defaultCamera: { position: [0, 0.1, 7.6], target: [0, 0, 0], fov: 32 },
+  model: { path: "/devices/macbook.glb", screenMeshNames: ["Screen"], screenMaterialNames: ["Display"],
+    rotation: [0, 0, 0], normalizeHeight: 3, screenPixels: [2560, 1600],
+    roles: { Bezel: "glass", Keyboard: "sensor", Lens: "lens", Legend: "sensor" } },
+};
+
 /** Devices that ship with a photorealistic GLB, in library order. */
 export const MODELLED_DEVICES: DeviceDefinition[] = [
   IPHONE_15_PRO_MAX,
   IPHONE_17_PRO_MAX,
   IPHONE_17_PRO,
+  IPAD,
+  MACBOOK,
 ];
 
 /**

@@ -57,11 +57,6 @@ const FORMAT_OPTIONS: Array<{ value: ExportFormat; label: string }> = [
  * there are one-click ways to reach the frames people actually want: the start,
  * the end, and the work area's in point.
  *
- * ## What it does not do
- *
- * Animated video. WebM and MP4 are listed and honestly disabled — see the note
- * in the panel. Showing a progress bar that produced a still with a video
- * extension would be worse than saying so.
  */
 export function ExportDialog() {
   const open = useEditorStore((state) => state.exportDialogOpen);
@@ -110,6 +105,8 @@ function ExportBody({
   const [phase, setPhase] = React.useState<ExportPhase>("idle");
   const [progress, setProgress] = React.useState(0);
   const [result, setResult] = React.useState<ExportResult | null>(null);
+  const controller = React.useRef<AbortController | null>(null);
+  React.useEffect(() => () => controller.current?.abort(), []);
   const [error, setError] = React.useState<string | null>(null);
 
   const scale = EXPORT_RESOLUTIONS.find((entry) => entry.id === resolution)?.scale ?? 1;
@@ -125,7 +122,7 @@ function ExportBody({
 
   const supported = exportService.isSupported(format);
   const isVideo = format === "webm" || format === "mp4";
-  // Only PNG and WebP carry an alpha channel, so transparency is derived.
+  // Only formats supporting alpha offer a transparent background.
   const transparentAvailable = supportsTransparency(format);
   const useTransparent = transparent && transparentAvailable;
 
@@ -146,6 +143,7 @@ function ExportBody({
   async function runExport() {
     if (!project) return;
 
+    controller.current = new AbortController();
     setResult(null);
     setPhase("running");
     setProgress(0);
@@ -166,6 +164,10 @@ function ExportBody({
           name: sanitizeFilename(project.name),
           background: project.background,
           backgroundAssetUrl: backgroundAssetUrl,
+          fps: canvas?.fps ?? 30,
+          startTime: range === "work-area" && area ? area.in : 0,
+          endTime: range === "work-area" && area ? area.out : (canvas?.duration ?? 5),
+          signal: controller.current.signal,
         },
         setProgress,
       );
@@ -179,6 +181,7 @@ function ExportBody({
       // refresh the project's poster.
       void captureThumbnailNow();
     } catch (caught) {
+      if (controller.current?.signal.aborted) { setPhase("idle"); return; }
       const message = caught instanceof Error ? caught.message : "The export could not be finished";
       setPhase("failed");
       setError(message);
@@ -195,6 +198,7 @@ function ExportBody({
       style={{ ["--dialog-width" as string]: "500px" }}
     >
         <div className="space-y-4 px-5 py-4">
+          <fieldset disabled={phase === "running"} className="space-y-4">
           <div className="space-y-1.5">
             <span className="panel-label">Format</span>
             <div className="grid grid-cols-5 gap-1.5">
@@ -257,14 +261,12 @@ function ExportBody({
 
           {transparent && !transparentAvailable ? (
             <Alert tone="warning">
-              Only PNG and WebP keep an alpha channel — this export renders on the current
+              PNG, WebP and WebM keep an alpha channel — this export renders on the current
               background.
             </Alert>
           ) : null}
 
-          {/* Range and frame. The range setting is stored with the project and
-              read by the video exporter when there is one; today it decides
-              which frames the quick-pick buttons offer. */}
+          {/* Video exports use this range; still exports use the playhead. */}
           <div className="space-y-2 rounded-md border border-line bg-surface-raised/50 p-2.5">
             <PanelRow label="Range">
               <Segmented
@@ -337,14 +339,13 @@ function ExportBody({
           </div>
 
           {isVideo ? (
-            <Alert tone="info" title="Video export is not available yet">
-              Animated MP4 and WebM rendering arrives in a later version, and this build will not
-              pretend otherwise — choosing one of them disables the export button rather than
-              handing you a still with a video extension. The range and frame rate above are saved
-              with the project, so they will be what the video renderer uses when it lands.
+            <Alert tone="info" title="Frame-by-frame video export">
+              Exports the selected range at {fps} fps, including device motion, text and screen videos.
+              Audio is not included. Keep this tab open until rendering finishes.
             </Alert>
           ) : null}
 
+          </fieldset>
           {phase === "running" ? (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-[11px] text-ink-muted">
@@ -389,8 +390,8 @@ function ExportBody({
             {width} × {height}
           </p>
           <div className="flex gap-2">
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              Close
+            <Button variant="ghost" size="sm" onClick={() => { if (phase === "running") controller.current?.abort(); else onClose(); }}>
+              {phase === "running" ? "Cancel export" : "Close"}
             </Button>
             <Button
               variant="primary"

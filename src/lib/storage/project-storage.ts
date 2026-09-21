@@ -90,13 +90,14 @@ class LocalProjectStorage implements ProjectStorage {
   }
 
   async load(id: string): Promise<Project | null> {
-    let raw = await idb.get<unknown>(BODY_PREFIX + id).catch(() => undefined);
+    let raw = await idb.get<unknown>(BODY_PREFIX + id);
 
     if (raw === undefined) {
       // One-time migration from the localStorage-only era.
-      raw = readJson<unknown>(LEGACY_BODY_PREFIX + id) ?? undefined;
+      const legacy = getStore().getItem(LEGACY_BODY_PREFIX + id);
+      raw = legacy ? JSON.parse(legacy) : undefined;
       if (raw !== undefined) {
-        await idb.set(BODY_PREFIX + id, raw).catch(() => {});
+        await idb.set(BODY_PREFIX + id, raw);
         try {
           getStore().removeItem(LEGACY_BODY_PREFIX + id);
         } catch {
@@ -187,11 +188,16 @@ class LocalProjectStorage implements ProjectStorage {
   }
 
   async listAssets(): Promise<Asset[]> {
-    return readJson<Asset[]>(ASSET_INDEX_KEY) ?? [];
+    const stored = await idb.get<Asset[]>(ASSET_INDEX_KEY);
+    if (stored) return stored;
+    const legacy = getStore().getItem(ASSET_INDEX_KEY);
+    const assets: Asset[] = legacy ? JSON.parse(legacy) : [];
+    if (assets.length) await idb.set(ASSET_INDEX_KEY, assets);
+    return assets;
   }
 
   async saveAssets(assets: Asset[]): Promise<void> {
-    writeJson(ASSET_INDEX_KEY, assets);
+    await idb.set(ASSET_INDEX_KEY, assets);
   }
 }
 

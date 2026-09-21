@@ -1,11 +1,13 @@
 "use client";
 
 import * as React from "react";
+import { useThree } from "@react-three/fiber";
 
 import { useMediaTexture } from "@/components/canvas/use-media-texture";
 import type { AssetType } from "@/types/asset";
 import {
   loadDeviceModel,
+  beginDevicePreparation,
   releaseUnusedModels,
   type PreparedDeviceModel,
 } from "@/engine/devices/model-loader";
@@ -58,6 +60,7 @@ export const DeviceModel = React.memo(function DeviceModel({
   onStatusChange,
   onMediaError,
 }: DeviceModelProps) {
+  const { gl, camera, scene } = useThree();
   const [prepared, setPrepared] = React.useState<PreparedDeviceModel | null>(null);
 
   // glTF UVs put the origin top-left, so screen images load unflipped.
@@ -79,12 +82,13 @@ export const DeviceModel = React.memo(function DeviceModel({
       .then((model) => {
         if (cancelled) {
           model.dispose();
+          releaseUnusedModels();
           return;
         }
         instance = model;
         setPrepared(model);
         onReady(model);
-        onStatusChange("ready", null);
+        model.root.visible = false;
       })
       .catch((error: unknown) => {
         if (cancelled) return;
@@ -108,10 +112,10 @@ export const DeviceModel = React.memo(function DeviceModel({
   // --- Screen texture -----------------------------------------------------
   // Only the emissive map is swapped. The model, its geometry and every other
   // material stay exactly as they were.
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     if (!prepared) return;
 
-    const placeholder = mediaUrl ? null : getPlaceholderScreenTexture(false);
+    const placeholder = !mediaUrl || mediaStatus === "error" ? getPlaceholderScreenTexture(false) : null;
     const active = texture ?? placeholder;
     const activeAspect = texture ? aspect : PLACEHOLDER_SCREEN_ASPECT;
 
@@ -122,10 +126,10 @@ export const DeviceModel = React.memo(function DeviceModel({
       // material can never sample freed GPU memory.
       setScreenTexture(prepared.screen, null, undefined);
     };
-  }, [prepared, texture, aspect, mediaUrl]);
+  }, [prepared, texture, aspect, mediaUrl, mediaStatus]);
 
   // --- Screen filters -----------------------------------------------------
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     if (!prepared) return;
     applyScreenAppearance(prepared.screen, {
       ...appearance,
@@ -136,9 +140,33 @@ export const DeviceModel = React.memo(function DeviceModel({
   // --- Body finish --------------------------------------------------------
   // Applied to this instance's own cloned materials, so it can never reach the
   // cached scene or another layer showing the same device.
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     prepared?.setAppearance(deviceAppearance);
   }, [prepared, deviceAppearance]);
+
+  // Keep the corrected model hidden until decoded media and GPU programs are ready.
+  React.useLayoutEffect(() => {
+    if (!prepared) return;
+    let cancelled = false;
+    const finish = beginDevicePreparation();
+    prepared.root.visible = false;
+    onStatusChange("loading", null);
+    if (mediaUrl && mediaStatus !== "ready" && mediaStatus !== "error") return finish;
+    const active = texture ?? getPlaceholderScreenTexture(false);
+    if (active) gl.initTexture(active);
+    void gl.compileAsync(prepared.root, camera, scene).then(() => {
+      if (cancelled) return;
+      prepared.root.userData.revealStarted = performance.now();
+      prepared.root.userData.finishPreparation = finish;
+      prepared.root.visible = true;
+      onReady(prepared);
+      onStatusChange("ready", null);
+    }).catch((error: unknown) => {
+      if (!cancelled) onStatusChange("error", error instanceof Error ? error.message : "Device preparation failed");
+      finish();
+    });
+    return () => { cancelled = true; finish(); };
+  }, [prepared, mediaUrl, mediaStatus, texture, gl, camera, scene, onReady, onStatusChange]);
 
   if (!prepared) return null;
 

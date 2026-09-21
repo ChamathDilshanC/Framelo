@@ -1,9 +1,10 @@
 "use client";
 
-import { Check, Lock } from "lucide-react";
+import { Check, Lock, Plus } from "lucide-react";
 import * as React from "react";
 
 import { Alert } from "@/components/ui/alert";
+import { preloadDeviceModel } from "@/engine/devices/model-loader";
 import { DEVICES } from "@/devices/registry";
 import { notify } from "@/lib/toast";
 import { cn } from "@/lib/utils";
@@ -24,21 +25,32 @@ export function DeviceSelector() {
   const updateDeviceMetadata = useProjectStore((state) => state.updateDeviceMetadata);
   const renameLayer = useProjectStore((state) => state.renameLayer);
 
-  const targetLayer =
-    layers?.find((layer) => layer.id === selectedLayerId) ??
-    layers?.find((layer) => layer.type === "device");
+  const targetLayer = layers?.find((layer) => layer.id === selectedLayerId && layer.type === "device");
 
   const currentDeviceId = ((targetLayer?.metadata ?? {}) as Partial<DeviceLayerMetadata>).deviceId;
 
   const modelled = DEVICES.filter((device) => device.available);
   const upcoming = DEVICES.filter((device) => !device.available);
 
+  function addBlankDevice(device: DeviceDefinition) {
+    const id = useProjectStore.getState().addDeviceLayer(device.id);
+    if (!id) return;
+    const editor = useEditorStore.getState();
+    editor.pause();
+    editor.selectLayer(id);
+    editor.requestCameraReset();
+    notify.success(`${device.name} added`, "Blank editable device. Upload an image or video to its screen.");
+  }
+
   function selectDevice(device: DeviceDefinition) {
     if (!device.available) {
       notify.info(`${device.name} is coming soon`, "The device library grows in the next release.");
       return;
     }
-    if (!targetLayer) return;
+    if (!targetLayer) {
+      addBlankDevice(device);
+      return;
+    }
     if (currentDeviceId === device.id) return;
 
     // A layer still carrying the old device's name would be misleading in the
@@ -48,6 +60,7 @@ export function DeviceSelector() {
 
     updateDeviceMetadata(targetLayer.id, { deviceId: device.id });
     if (wasDefaultName) renameLayer(targetLayer.id, device.name);
+    useEditorStore.getState().selectLayer(targetLayer.id);
 
     notify.info(`${device.name} selected`, "Loading the photorealistic model…");
   }
@@ -56,12 +69,18 @@ export function DeviceSelector() {
     <div className="space-y-4 p-3">
       <div className="space-y-2">
         {modelled.map((device) => (
+          <div key={device.id} className="space-y-1">
           <DeviceCard
-            key={device.id}
             device={device}
             selected={device.id === currentDeviceId}
+            actionLabel={targetLayer ? "Replace selected device" : "Add blank device"}
             onSelect={() => selectDevice(device)}
           />
+          <button type="button" aria-label={`Add blank ${device.name}`} onClick={() => addBlankDevice(device)}
+            className="flex w-full items-center justify-center gap-1 rounded border border-line py-1.5 text-[10px] text-ink-muted hover:bg-surface-hover">
+            <Plus className="size-3" /> Add blank
+          </button>
+          </div>
         ))}
       </div>
 
@@ -84,13 +103,16 @@ export function DeviceSelector() {
 interface DeviceCardProps {
   device: DeviceDefinition;
   selected: boolean;
+  actionLabel: string;
   onSelect: () => void;
 }
 
-function DeviceCard({ device, selected, onSelect }: DeviceCardProps) {
+function DeviceCard({ device, selected, actionLabel, onSelect }: DeviceCardProps) {
   return (
     <button
       type="button"
+      onPointerEnter={() => { void preloadDeviceModel(device).catch(() => {}); }}
+      onFocus={() => { void preloadDeviceModel(device).catch(() => {}); }}
       onClick={onSelect}
       aria-pressed={selected}
       title={device.description}
@@ -115,7 +137,7 @@ function DeviceCard({ device, selected, onSelect }: DeviceCardProps) {
             selected ? "text-accent" : "text-ink-subtle/70",
           )}
         >
-          {selected ? "Selected" : "Select"}
+          {selected ? "Selected" : actionLabel}
         </span>
       </span>
 
@@ -169,7 +191,7 @@ function DeviceThumbnail({ device, selected }: { device: DeviceDefinition; selec
           "relative flex flex-col overflow-hidden rounded-[4px] border bg-gradient-to-b from-[#2c2d33] to-[#141419] shadow-sm shadow-black/50",
           selected ? "border-accent/50" : "border-line-strong",
         )}
-        style={{ height: "44px", width: `${Math.max(18, aspect * 44)}px` }}
+        style={{ height: `${Math.min(44, 34 / aspect)}px`, width: `${Math.min(34, Math.max(18, aspect * 44))}px` }}
       >
         {/* Display */}
         <span className="absolute inset-[2px] rounded-[3px] bg-gradient-to-br from-[#1b1b26] to-[#0b0b10]" />
@@ -221,7 +243,7 @@ function ModelCredits() {
           </span>
         ))}
         <span className="block pt-1">
-          Third-party Sketchfab assets under{" "}
+          iPad and MacBook: original Framelo studio geometry. iPhone Sketchfab assets under{" "}
           <a
             href="https://creativecommons.org/licenses/by/4.0/"
             target="_blank"

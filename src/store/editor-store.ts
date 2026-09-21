@@ -3,6 +3,8 @@
 import { create } from "zustand";
 
 import type { CameraViewId } from "@/engine/devices/device-presets";
+import { cameraPoseFor, resolveProjectView } from "@/lib/project-view";
+import type { Project, ProjectEditorState } from "@/types/project";
 import { clamp } from "@/lib/utils";
 import type { AnimatableProperty, EasingType } from "@/types/animation";
 
@@ -11,13 +13,14 @@ export type LeftPanelTab = "devices" | "assets" | "library" | "text";
 /**
  * Which catalogue the library panel is showing.
  *
- * Four separate libraries that used to be two sidebar tabs. They are tabs
- * within one panel rather than four entries on the rail because choosing
- * between them is a *comparison* — "is this a whole starting layout, a
- * choreography, an effect, or a text animation?" — and a comparison wants the
- * options side by side, not four icons that each hide the other three.
+ * Three *motion* catalogues that used to be four. Templates left: it is the
+ * only one of the four that replaces the whole project rather than adding to
+ * a layer, and browsing whole compositions in a 256-pixel column was the wrong
+ * shape for it — it now has its own rail entry and its own full-size browser.
+ * What is left genuinely is a comparison — "a choreography, an effect, or a
+ * text animation?" — which is why these three stay side by side.
  */
-export type LibraryTab = "templates" | "device-motion" | "motion" | "text";
+export type LibraryTab = "device-motion" | "motion" | "text";
 
 /**
  * The active canvas tool.
@@ -60,6 +63,7 @@ interface EditorStoreState {
   currentTime: number;
   duration: number;
   isPlaying: boolean;
+  isExporting: boolean;
   loop: boolean;
   /** Horizontal timeline zoom, in pixels per second. */
   pixelsPerSecond: number;
@@ -101,16 +105,26 @@ interface EditorStoreState {
   timelineOpen: boolean;
   exportDialogOpen: boolean;
   shortcutsOpen: boolean;
+  /**
+   * The template browser, which is a surface over the editor rather than a
+   * panel beside it. Whole compositions need room to be compared, and opening
+   * it changes nothing about the project until a template is applied.
+   */
+  templateBrowserOpen: boolean;
 
   // viewport
   showSafeArea: boolean;
   orbitEnabled: boolean;
   /**
    * Which product-shot camera the viewport is on. Camera state is deliberately
-   * kept out of the project: it frames the shot, it is not part of the
-   * animation, and the device transform stays the only animated thing.
+   * saved as static editor state: it frames the shot but is not animated.
+   * Device transforms remain the only animated 3D values.
    */
   cameraView: CameraViewId;
+  cameraPose: ProjectEditorState['camera'];
+  cameraRestoreToken: number;
+  recordCameraPose: (pose: ProjectEditorState['camera']) => void;
+  restoreProjectView: (project: Project) => void;
   /** Bumped to ask the canvas to return the camera to the device default. */
   cameraResetToken: number;
   /** Bumped to ask the canvas to frame the visible layers. */
@@ -152,6 +166,7 @@ interface EditorStoreState {
   toggleTimeline: (open?: boolean) => void;
   setExportDialogOpen: (open: boolean) => void;
   setShortcutsOpen: (open: boolean) => void;
+  setTemplateBrowserOpen: (open: boolean) => void;
 
   setShowSafeArea: (show: boolean) => void;
   setOrbitEnabled: (enabled: boolean) => void;
@@ -167,6 +182,7 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
   currentTime: 0,
   duration: 5,
   isPlaying: false,
+  isExporting: false,
   loop: true,
   pixelsPerSecond: 140,
 
@@ -186,10 +202,26 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
   timelineOpen: true,
   exportDialogOpen: false,
   shortcutsOpen: false,
+  templateBrowserOpen: false,
 
   showSafeArea: false,
   orbitEnabled: true,
   cameraView: "front",
+  cameraPose: cameraPoseFor("front"),
+  cameraRestoreToken: 0,
+  recordCameraPose(pose) {
+    const current = get().cameraPose;
+    if (pose.position.every((value, i) => Math.abs(value - current.position[i]) < 0.00001) &&
+        pose.target.every((value, i) => Math.abs(value - current.target[i]) < 0.00001)) return;
+    set({ cameraPose: pose });
+  },
+  restoreProjectView(project) {
+    const view = resolveProjectView(project);
+    set(state => ({ currentTime: view.currentTime, duration: project.canvas.duration,
+      isPlaying: false, selectedLayerId: view.selectedLayerId, selectedKeyframes: [], editingLayerId: null,
+      activeTool: "select", cameraView: view.cameraView, cameraPose: view.camera,
+      cameraResetToken: 0, cameraFitToken: 0, cameraRestoreToken: state.cameraRestoreToken + 1 }));
+  },
   cameraResetToken: 0,
   cameraFitToken: 0,
 
@@ -209,6 +241,7 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
   },
 
   play() {
+    if (get().isExporting) return;
     const { currentTime, duration } = get();
     // Restarting from the end feels better than sitting on the last frame.
     set({ isPlaying: true, currentTime: currentTime >= duration - 0.001 ? 0 : currentTime });
@@ -348,6 +381,10 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
     set({ shortcutsOpen: open });
   },
 
+  setTemplateBrowserOpen(open) {
+    set({ templateBrowserOpen: open });
+  },
+
   setShowSafeArea(show) {
     set({ showSafeArea: show });
   },
@@ -364,6 +401,7 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
   requestCameraReset() {
     set((state) => ({
       cameraView: "front",
+      cameraPose: cameraPoseFor("front"),
       cameraResetToken: state.cameraResetToken + 1,
     }));
   },

@@ -26,7 +26,23 @@ export interface DeviceLayerMetadata {
   /** Asset currently mapped onto the device screen. */
   screenAssetId: string | null;
   /** Bundled artwork used until an uploaded screen is assigned. */
-  screenArtwork?: "editorial" | "manifesto" | "landscape" | "nebula";
+  screenArtwork?:
+    | "editorial"
+    | "manifesto"
+    | "landscape"
+    | "nebula"
+    | "studio-tablet"
+    | "studio-desktop"
+    | "crimson-editorial"
+    | "neon-portfolio"
+    | "midnight-sales"
+    | "floating-commerce"
+    | "amber-agency"
+    | "amber-tablet"
+    | "lime-campaign"
+    | "amber-mobile"
+    | "lime-mobile"
+    | "emerald";
   screenFit: ScreenFit;
   videoLoop?: boolean;
   videoMuted?: boolean;

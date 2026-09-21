@@ -8,6 +8,8 @@ A browser-based device mockup and animation studio. Drop a screenshot onto a
 photorealistic 3D device, animate it on a real keyframe timeline, preview it,
 and export in seconds.
 
+Created and maintained by [**ChamathDilshanC**](https://github.com/ChamathDilshanC).
+
 [![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
@@ -27,6 +29,7 @@ Upload  →  Place  →  Transform  →  Animate  →  Preview  →  Save  →  
 ## Table of contents
 
 - [Why Framelo](#why-framelo)
+- [Features and screenshots](#features-and-screenshots)
 - [Quick start](#quick-start)
 - [The core loop](#the-core-loop)
 - [Routes](#routes)
@@ -56,6 +59,35 @@ a background layer that stays genuinely transparent on export.
 | **Photoreal devices** | GLB models with per-model orientation and UV correction, plus material finishes derived live from the import. |
 | **Shareable** | One click publishes a public link that autoplays on open, or lists the piece on your portfolio profile. |
 | **Safe by construction** | User CSS is validated against an allowlist on the way in, out of storage, and again before it reaches the DOM. Nothing pasted is ever evaluated. |
+
+---
+
+## Features and screenshots
+
+Framelo includes a complete local editor with optional cloud publishing:
+
+| Feature | Included tools |
+| --- | --- |
+| Projects | Create, rename, duplicate, save and reopen local compositions |
+| Devices | Real iPhone, iPad and MacBook models; independent screens and material finishes |
+| Screen media | PNG, JPG, WebP, MP4 and WebM; fit, brightness, contrast and saturation controls |
+| Templates | Categorized Mobile, Tablet, Laptop and Multi-device scenes with editable layers |
+| Typography | Font library, text styling, motion presets and device-screen alignment |
+| Animation | Transform keyframes, easing editor, presets, timeline scrubbing and playback |
+| Backgrounds | Solid colours, gradients, patterns, custom CSS, images and transparency |
+| Composition | Canvas dimensions, frame rate, duration, camera views and layer ordering |
+| Export | PNG, JPG, WebP, MP4 and WebM; video support depends on browser codec availability |
+| Sharing | Optional accounts, cloud sync, public project links and portfolio publishing |
+| Preferences | Theme settings, keyboard shortcuts and undo/redo |
+
+The six premium device templates are **Crimson Editorial Tablet**, **Neon
+Portfolio Tablet**, **Midnight Sales Laptop**, **Floating Commerce Laptop**,
+**Amber Agency Ecosystem** and **Lime Digital Campaign**. They use 1080 × 1350
+portrait canvases, original artwork and native editable animation tracks.
+Each ecosystem contains three independent device layers.
+
+Feature screenshots and their coverage index live in
+[`docs/screenshots/`](docs/screenshots/README.md).
 
 ---
 
@@ -93,8 +125,8 @@ cp .env.example .env.local   # only needed for the optional backend
 1. Open `/dashboard` and click **New project** — pick a device, a starting
    animation, a canvas size and a background.
 2. The editor opens with the project already animated.
-3. Drop a PNG/JPG/WebP into **Assets**; it lands on the device screen
-   immediately.
+3. Upload PNG/JPG/WebP images or MP4/WebM video through **Assets**, then assign
+   media to each device screen independently.
 4. Set the device **finish** — Natural, Dark, Light, Gold, Silver or a custom
    colour — and the screen's brightness, contrast and saturation.
 5. Choose a **background**: solid, gradient, a pattern from the library, your
@@ -105,8 +137,9 @@ cp .env.example .env.local   # only needed for the optional backend
    playhead, change the value — a second keyframe is written automatically.
 8. Press <kbd>Space</kbd> to play. Scrub the ruler or drag keyframes on the
    timeline.
-9. <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>E</kbd> exports a PNG, JPG or WebP at
-   up to 4K, with optional transparency.
+9. <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>E</kbd> opens export: choose a PNG,
+   JPG or WebP still, or an MP4/WebM video. Video codec support depends on the
+   browser; transparency is available for supported formats.
 10. **Share** publishes a public link that plays on open; **Add to portfolio**
     lists it on your profile.
 
@@ -213,8 +246,9 @@ source image is never rewritten.
 renders when a GLB fails to load, at the same normalised size — so transforms,
 keyframes and export behave identically on it.
 
-**Camera state is not project state.** Camera views frame the shot and live in
-the editor store; only the device transform is animated and exported.
+**Camera framing is saved with the project.** The editor keeps the live camera
+pose, playhead and selection in editor state and restores them on reload.
+Device animation remains independently editable on the timeline.
 
 **Undo/redo is command-based** with transaction coalescing, so dragging a slider
 is one history entry rather than fifty.
@@ -389,14 +423,13 @@ __framelo.useFallback(true)               // exercise the fallback path by hand
 
 ## Roadmap
 
-- [ ] **Video export** (WebM/MP4/GIF) — `ExportService` already routes formats
-      through a registry and reports these as unsupported; the still exporter is
-      real.
+- [x] **Video export** — MP4 and WebM through the scene export pipeline, subject
+      to browser codec support. GIF is not implemented.
 - [ ] **Screen media on shared pages** — assets live in a private bucket, so the
       public viewer renders the generated placeholder screen. Publishing assets
       needs a deliberate decision about what a share link exposes.
-- [ ] **More devices** — iPad, MacBook and browser definitions exist and are
-      marked unavailable until their models land.
+- [x] **iPad and MacBook** — real models, replaceable screens and dedicated
+      Tablet, Laptop and Multi-device templates.
 - [ ] **A render worker** for heavy exports off the main thread.
 - [ ] **Shape layers** alongside the existing text layers.
 - [ ] **Realtime** — deliberately deferred; nothing in single-user editing
@@ -426,7 +459,7 @@ endorsed by Apple Inc.
 
 ## License
 
-[MIT](LICENSE) © [Chamath Dilshan](https://github.com/ChamathDilshanC)
+[MIT](LICENSE) © [ChamathDilshanC](https://github.com/ChamathDilshanC)
 
 Third-party material bundled with this repository is listed in
 [`NOTICE`](NOTICE) and is covered by its own terms, not by the MIT licence.

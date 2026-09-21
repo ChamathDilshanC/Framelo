@@ -33,11 +33,13 @@ describe("device registry", () => {
     expect(getDevice("nope-not-a-device").id).toBe(DEFAULT_DEVICE_ID);
   });
 
-  it("ships the three modelled iPhones as the available devices", () => {
+  it("ships phones, a tablet and a laptop", () => {
     expect(getAvailableDevices().map((device) => device.id)).toEqual([
       "iphone-15-pro-max",
       "iphone-17-pro-max",
       "iphone-17-pro",
+      "ipad",
+      "macbook",
     ]);
   });
 });

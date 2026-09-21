@@ -1,142 +1,77 @@
 "use client";
 
-import * as React from "react";
+import * as React from 'react';
+import { AUTOSAVE_DEBOUNCE_MS } from '@/lib/constants';
+import { flushSyncQueue, saveProject } from '@/lib/projects/project-service';
+import { notify } from '@/lib/toast';
+import { useEditorStore } from '@/store/editor-store';
+import { useProjectStore } from '@/store/project-store';
+import type { Project } from '@/types/project';
 
-import { AUTOSAVE_DEBOUNCE_MS } from "@/lib/constants";
-import { flushSyncQueue, saveProject } from "@/lib/projects/project-service";
-import { notify } from "@/lib/toast";
-import { useProjectStore } from "@/store/project-store";
-import type { Project } from "@/types/project";
+/** Capture the viewport without adding timeline ticks to undo history. */
+export function checkpointEditorView(): void {
+  const editor = useEditorStore.getState();
+  const project = useProjectStore.getState().project;
+  if (!project || editor.isExporting) return;
+  useProjectStore.getState().setEditorState({
+    currentTime: Math.min(editor.currentTime, project.canvas.duration),
+    cameraView: editor.cameraView, camera: editor.cameraPose, selectedLayerId: editor.selectedLayerId,
+  });
+}
 
-/**
- * Debounced, optimistic persistence.
- *
- * The editor never waits for a save. Local state updates on the keystroke, the
- * local write happens once the user pauses, and the cloud write follows it —
- * so "Saved" means the work is durable on this machine, which is the promise
- * that actually matters.
- *
- * A failed sync is explicitly **not** an error state for the user's data: the
- * draft is safe locally and the queue retries it. That is said out loud rather
- * than shown as a red failure, because the two are genuinely different.
- */
 export function useAutosave(): void {
-  const project = useProjectStore((state) => state.project);
-  const saveStatus = useProjectStore((state) => state.saveStatus);
-  const setSaveStatus = useProjectStore((state) => state.setSaveStatus);
-  const markSaved = useProjectStore((state) => state.markSaved);
-
-  const syncWarned = React.useRef(false);
-  const lastSavedSnapshot = React.useRef<string | null>(null);
-
+  const project = useProjectStore(state => state.project);
+  const saveStatus = useProjectStore(state => state.saveStatus);
+  React.useEffect(() => useEditorStore.subscribe((state, previous) => {
+    if (state.isExporting || previous.isExporting || state.isPlaying || state.cameraRestoreToken !== previous.cameraRestoreToken) return;
+    if (state.currentTime !== previous.currentTime || state.isPlaying !== previous.isPlaying ||
+        state.cameraPose !== previous.cameraPose || state.selectedLayerId !== previous.selectedLayerId) checkpointEditorView();
+  }), []);
   React.useEffect(() => {
-    if (!project || saveStatus !== "unsaved") return;
-
-    const timer = window.setTimeout(() => {
-      void run(project);
-    }, AUTOSAVE_DEBOUNCE_MS);
-
+    if (!project || saveStatus !== 'unsaved') return;
+    const timer = window.setTimeout(() => { void saveProjectNow(project); }, AUTOSAVE_DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
-
-    async function run(current: Project) {
-      // Undo and redo can land the project back on a state already written.
-      const snapshot = JSON.stringify(current);
-      if (snapshot === lastSavedSnapshot.current) {
-        markSaved();
-        return;
-      }
-
-      setSaveStatus("saving");
-
-      try {
-        const result = await saveProject(current);
-        lastSavedSnapshot.current = snapshot;
-
-        if (result.synced) {
-          markSaved(current.updatedAt);
-          syncWarned.current = false;
-          return;
-        }
-
-        // Local write succeeded, cloud write did not.
-        setSaveStatus("offline");
-        if (!syncWarned.current) {
-          syncWarned.current = true;
-          notify.warning(
-            "Couldn't sync changes",
-            "Your local draft is safe. Framelo will retry automatically.",
-          );
-        }
-      } catch (error) {
-        setSaveStatus("error");
-        notify.error(
-          "Project could not be saved",
-          error instanceof Error ? error.message : "Local storage is unavailable.",
-        );
-      }
-    }
-  }, [project, saveStatus, setSaveStatus, markSaved]);
-
-  useRetryOnReconnect();
-}
-
-/**
- * Retry pending pushes when the connection returns.
- *
- * Listening for `online` rather than polling: a tab that is offline for an hour
- * should make zero requests in that hour.
- */
-function useRetryOnReconnect(): void {
-  const setSaveStatus = useProjectStore((state) => state.setSaveStatus);
-  const markSaved = useProjectStore((state) => state.markSaved);
-
+  }, [project, saveStatus]);
   React.useEffect(() => {
-    async function retry() {
-      const pushed = await flushSyncQueue().catch(() => 0);
-      if (pushed === 0) return;
-
-      markSaved();
-      notify.success("Changes synced", `${pushed} project${pushed === 1 ? "" : "s"} brought up to date.`);
-    }
-
-    function handleOffline() {
-      if (useProjectStore.getState().saveStatus === "saved") setSaveStatus("offline");
-    }
-
-    window.addEventListener("online", retry);
-    window.addEventListener("offline", handleOffline);
-
-    // Also try once on mount, for the case where the tab was closed offline.
-    if (navigator.onLine) void retry();
-
-    return () => {
-      window.removeEventListener("online", retry);
-      window.removeEventListener("offline", handleOffline);
+    const flush = () => {
+      const current = useProjectStore.getState().project;
+      if (current) void saveProjectNow(current);
     };
-  }, [setSaveStatus, markSaved]);
+    const visibility = () => { if (document.visibilityState === 'hidden') flush(); };
+    const retry = () => {
+      void flushSyncQueue().then(() => {
+        const state = useProjectStore.getState();
+        if (state.project && state.saveStatus === 'offline') void saveProjectNow(state.project);
+      }).catch(() => 0);
+    };
+    window.addEventListener('pagehide', flush);
+    document.addEventListener('visibilitychange', visibility);
+    window.addEventListener('online', retry);
+    if (navigator.onLine) retry();
+    return () => {
+      window.removeEventListener('pagehide', flush);
+      document.removeEventListener('visibilitychange', visibility);
+      window.removeEventListener('online', retry);
+    };
+  }, []);
 }
 
-/** Explicit save, used by Cmd/Ctrl+S and the save-status button. */
+/** Only the exact saved revision may update the current document's save badge. */
 export async function saveProjectNow(project: Project): Promise<boolean> {
-  const store = useProjectStore.getState();
-  store.setSaveStatus("saving");
-
+  if (useProjectStore.getState().project?.id === project.id) checkpointEditorView();
+  const snapshot = useProjectStore.getState().project?.id === project.id ? useProjectStore.getState().project! : project;
+  const isCurrent = () => useProjectStore.getState().project === snapshot;
+  if (isCurrent()) useProjectStore.getState().setSaveStatus('saving');
   try {
-    const result = await saveProject(project);
-    if (result.synced) {
-      store.markSaved(project.updatedAt);
-      return true;
+    const result = await saveProject(snapshot);
+    if (isCurrent()) {
+      if (result.synced) useProjectStore.getState().markSaved(snapshot.updatedAt);
+      else useProjectStore.getState().setSaveStatus('offline', result.error);
     }
-
-    store.setSaveStatus("offline");
-    notify.warning("Saved locally", "Your draft is safe. Framelo will sync when you're back online.");
     return true;
   } catch (error) {
-    store.setSaveStatus("error");
-    notify.error(
-      "Project could not be saved",
-      error instanceof Error ? error.message : "Local storage is unavailable.",
-    );
+    if (isCurrent()) useProjectStore.getState().setSaveStatus('error');
+    notify.error('Project could not be saved', error instanceof Error ? error.message : 'Local storage is unavailable.');
     return false;
   }
 }

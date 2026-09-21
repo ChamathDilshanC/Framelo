@@ -70,29 +70,42 @@ export async function listProjects(options: ListOptions = {}): Promise<ProjectSu
 }
 
 export async function loadProject(id: string): Promise<Project | null> {
-  const local = await projectStorage.load(id).catch(() => null);
-
+  await pendingLocalWrites.get(id);
+  let local: Project | null = null;
+  let localError: unknown;
+  try { local = await projectStorage.load(id); } catch (error) { localError = error; }
+  if (local && pendingSaves.has(id)) return local;
   const session = cloud();
-  if (!session) return local;
-
-  const { data } = await session.supabase
-    .from("projects")
-    .select("id,project_data,updated_at")
-    .eq("id", id)
-    .maybeSingle();
-
-  if (!data) return local;
-
+  if (!session) {
+    if (localError) throw localError;
+    return local;
+  }
+  let response;
+  try {
+    response = await session.supabase.from("projects")
+      .select("id,project_data,updated_at").eq("id", toUuid(id)).maybeSingle();
+  } catch (error) {
+    if (local) return local;
+    throw error;
+  }
+  const { data, error } = response;
+  if (error) {
+    if (local) return local;
+    throw new Error(error.message);
+  }
+  if (!data) {
+    if (localError) throw localError;
+    return local;
+  }
   const row = data as Pick<ProjectRow, "id" | "project_data" | "updated_at">;
-
-  // A local copy edited more recently than the server's is the newer one — a
-  // stale row must never overwrite work the user can still see.
-  if (local && local.updatedAt >= row.updated_at) return local;
-
   const parsed = parseProject(row.project_data);
-  if (!parsed.ok || !parsed.project) return local;
-
-  await projectStorage.save(parsed.project).catch(() => {});
+  if (!parsed.ok || !parsed.project) {
+    if (local) return local;
+    throw new Error(parsed.error ?? "Saved project could not be read");
+  }
+  // Compare document revisions, not row timestamps changed by sharing or thumbnails.
+  if (local && (readQueue().includes(id) || Date.parse(local.updatedAt) >= Date.parse(parsed.project.updatedAt))) return local;
+  await projectStorage.save(parsed.project);
   return parsed.project;
 }
 
@@ -103,7 +116,7 @@ export async function loadProject(id: string): Promise<Project | null> {
 export interface SaveResult {
   /** The local write succeeded. The user's work is safe either way. */
   saved: boolean;
-  /** The cloud write succeeded, or there was no cloud to write to. */
+  /** The cloud write succeeded. Local-only saves are reported separately. */
   synced: boolean;
   error?: string;
 }
@@ -116,32 +129,50 @@ export interface SaveResult {
  * reported separately: if it fails, the draft is still safe and the sync queue
  * retries it.
  */
-export async function saveProject(project: Project): Promise<SaveResult> {
-  await projectStorage.save(project);
+const pendingSaves = new Map<string, Promise<SaveResult>>();
+const pendingLocalWrites = new Map<string, Promise<void>>();
+const latestSnapshots = new Map<string, Project>();
+export function saveProject(project: Project): Promise<SaveResult> {
+  const snapshot = structuredClone(project);
+  latestSnapshots.set(project.id, snapshot);
+  // A slow cloud request must never delay the next durable local revision.
+  const local = (pendingLocalWrites.get(project.id) ?? Promise.resolve())
+    .catch(() => {}).then(() => projectStorage.save(snapshot));
+  pendingLocalWrites.set(project.id, local);
+  void local.finally(() => {
+    if (pendingLocalWrites.get(project.id) === local) pendingLocalWrites.delete(project.id);
+  }).catch(() => {});
+  const previousSync = pendingSaves.get(project.id) ?? Promise.resolve();
+  const next = Promise.all([local, previousSync.catch(() => {})]).then(() => syncProject(snapshot));
+  pendingSaves.set(project.id, next);
+  void next.finally(() => {
+    if (pendingSaves.get(project.id) === next) {
+      pendingSaves.delete(project.id);
+      latestSnapshots.delete(project.id);
+    }
+  }).catch(() => {});
+  return next;
+}
 
+async function syncProject(project: Project): Promise<SaveResult> {
   const session = cloud();
-  if (!session) return { saved: true, synced: true };
-
-  const { error } = await session.supabase.from("projects").upsert(
-    {
-      id: toUuid(project.id),
-      user_id: session.userId,
-      name: project.name,
-      slug: project.slug,
-      description: project.description ?? null,
-      project_data: project,
-      updated_at: project.updatedAt,
-    },
-    { onConflict: "id" },
-  );
-
-  if (error) {
-    enqueue(project.id);
-    return { saved: true, synced: false, error: error.message };
+  if (!session) return { saved: true, synced: false, error: getSupabaseClient()
+    ? "Sign in to sync this project to your account."
+    : "Cloud sync is not configured. This project is saved on this device." };
+  enqueue(project.id);
+  try {
+    const { error } = await session.supabase.from("projects").upsert(
+      { id: toUuid(project.id), user_id: session.userId, name: project.name, slug: project.slug,
+        description: project.description ?? null, project_data: project, updated_at: project.updatedAt },
+      { onConflict: "id" },
+    );
+    if (error) return { saved: true, synced: false, error: error.message };
+    // A newer local revision may have arrived during this network request.
+    if (latestSnapshots.get(project.id) === project) dequeue(project.id);
+    return { saved: true, synced: true };
+  } catch (error) {
+    return { saved: true, synced: false, error: error instanceof Error ? error.message : "Cloud sync unavailable" };
   }
-
-  dequeue(project.id);
-  return { saved: true, synced: true };
 }
 
 export async function createProjectRecord(project: Project): Promise<Project> {
@@ -160,7 +191,7 @@ export async function deleteProject(id: string): Promise<void> {
   if (!session) return;
 
   // The cascade on `projects` removes assets, shares and the portfolio item.
-  await session.supabase.from("projects").delete().eq("id", id).eq("user_id", session.userId);
+  await session.supabase.from("projects").delete().eq("id", toUuid(id)).eq("user_id", session.userId);
 }
 
 /**
@@ -229,7 +260,7 @@ export async function saveThumbnail(projectId: string, blob: Blob): Promise<stri
   await session.supabase
     .from("projects")
     .update({ thumbnail_path: path })
-    .eq("id", projectId)
+    .eq("id", toUuid(projectId))
     .eq("user_id", session.userId);
 
   return path;
@@ -298,7 +329,14 @@ export async function flushSyncQueue(): Promise<number> {
 
   let pushed = 0;
   for (const id of ids) {
+    await pendingLocalWrites.get(id)?.catch(() => {});
+    const pending = pendingSaves.get(id);
+    if (pending) {
+      if ((await pending.catch(() => null))?.synced) pushed += 1;
+      continue;
+    }
     const project = await projectStorage.load(id).catch(() => null);
+    if (pendingSaves.has(id)) continue;
     if (!project) {
       dequeue(id);
       continue;
@@ -419,7 +457,8 @@ function toUuid(id: string): string {
     h2 = Math.imul(h2 + id.charCodeAt(i), 0x85ebca6b) >>> 0;
   }
 
-  const hex = (value: number) => value.toString(16).padStart(8, "0");
+  // Bitwise XOR is signed in JavaScript; negative hex strings are not UUIDs.
+  const hex = (value: number) => (value >>> 0).toString(16).padStart(8, "0");
   const raw = (hex(h1) + hex(h2) + hex(h1 ^ 0x5bf03635) + hex(h2 ^ 0xc2b2ae35)).slice(0, 32);
 
   return [

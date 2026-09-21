@@ -21,7 +21,7 @@ export function buildTemplateLayers(
   existingDevice: Layer | null,
 ): TemplateBuildResult {
   const devices = template.deviceLayers?.map((spec, index) => {
-    const layer = buildDeviceLayer({ ...template, deviceTransform: spec.transform }, index === 0 ? existingDevice : null);
+    const layer = buildDeviceLayer({ ...template, deviceId: spec.deviceId ?? template.deviceId, deviceTransform: spec.transform }, index === 0 ? existingDevice : null);
     layer.name = spec.name;
     layer.metadata = { ...layer.metadata, screenArtwork: spec.screenArtwork, ...(spec.shadowIntensity === undefined ? {} : { shadowIntensity: spec.shadowIntensity }) };
     layer.animations = entranceTracks(layer.transform, spec.entrance, template.canvas.duration);
@@ -166,6 +166,11 @@ function entranceTracks(transform: Transform, entrance: TemplateEntrance, durati
         ? [{ time: entrance.drift.start, value: transform[property] }] : []),
       { time: duration, value: entrance.drift?.to[property] ?? transform[property] },
     ];
-    return { property, keyframes: points.map((point) => ({ ...point, id: createId("kf"), easing: "expo" })) };
+    return { property, keyframes: points.map((point) => ({
+      ...point, id: createId("kf"),
+      easing: entrance.drift && point.time >= entrance.drift.start
+        ? entrance.drift.easing ?? "expo"
+        : entrance.easing ?? "expo",
+    })) };
   });
 }

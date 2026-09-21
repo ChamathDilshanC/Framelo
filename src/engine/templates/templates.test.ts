@@ -1,15 +1,28 @@
 import { describe, expect, it } from "vitest";
 
 import { getMotionPreset } from "@/engine/motion/motion-presets";
-import { PROJECT_TEMPLATES } from "@/engine/templates/project-templates";
+import {
+  PROJECT_TEMPLATES,
+  TEMPLATE_CATEGORIES,
+  activeTemplateCategories,
+  getProjectTemplate,
+  searchProjectTemplates,
+  templateDeviceIds,
+} from "@/engine/templates/project-templates";
 import { buildTemplateLayers, templateSignature } from "@/engine/templates/template-builder";
 import { evaluateTransform } from "@/engine/animation/evaluate";
+import { nameFromContent } from "@/engine/text/text-types";
+import { getDevice } from "@/devices/registry";
 import { createDeviceLayer } from "@/lib/project-factory";
 import { IDENTITY_TRANSFORM } from "@/types/layer";
 
 describe("the template catalogue", () => {
-  it("offers both premium templates", () => {
-    expect(PROJECT_TEMPLATES.map((template) => template.id)).toEqual(["kinetic-mobile-presentation", "nebula-music-experience"]);
+  it("preserves mobile and replaces the old studio entries with exactly six scenes", () => {
+    expect(PROJECT_TEMPLATES.map((template) => template.id)).toEqual([
+      "kinetic-mobile-presentation", "nebula-music-experience", "emerald-finance-showcase",
+      "crimson-editorial-tablet", "neon-portfolio-tablet", "midnight-sales-laptop",
+      "floating-commerce-laptop", "amber-agency-ecosystem", "lime-digital-campaign",
+    ]);
   });
 
   it("gives every template a unique id", () => {
@@ -168,7 +181,13 @@ describe("applying a template", () => {
     for (const template of PROJECT_TEMPLATES) {
       const { layers } = buildTemplateLayers(template, device);
       for (const layer of layers.filter((entry) => entry.type === "text")) {
-        const spec = template.textLayers?.find((entry) => entry.content === layer.metadata?.content);
+        // Matched by layer name, not by content: two layers in a composition
+        // may legitimately say the same words — a brand mark at the top and
+        // again at the bottom — and names are the thing the builder keeps
+        // unique.
+        const spec = template.textLayers?.find(
+          (entry) => (entry.name ?? nameFromContent(entry.content)) === layer.name,
+        );
         expect(layer.transform.z, template.id).toBe(spec?.transform.z ?? 0.6);
       }
     }
@@ -178,5 +197,75 @@ describe("applying a template", () => {
     const { layers } = buildTemplateLayers(PROJECT_TEMPLATES[0], device);
     expect(layers[0].transform.opacity).toBe(IDENTITY_TRANSFORM.opacity);
     expect(layers[0].transform.opacity).toBe(1);
+  });
+});
+
+
+describe("the category system the browser filters on", () => {
+  it("gives every template a category from the catalogue's own list", () => {
+    for (const template of PROJECT_TEMPLATES) {
+      expect(TEMPLATE_CATEGORIES, template.id).toContain(template.category);
+    }
+  });
+
+  it("only offers categories that have something in them", () => {
+    const active = activeTemplateCategories();
+    expect(active.length).toBeGreaterThan(0);
+    for (const category of active) {
+      expect(searchProjectTemplates(category, "").length, category).toBeGreaterThan(0);
+    }
+  });
+
+  it("puts each template in the category its devices actually describe", () => {
+    // The category is metadata, never inferred from the name — but it still
+    // has to agree with what the composition contains, or the tabs lie.
+    for (const template of PROJECT_TEMPLATES) {
+      const categories = new Set(
+        templateDeviceIds(template).map((id) => getDevice(id).category),
+      );
+
+      if (template.category === "multi-device") {
+        expect(templateDeviceIds(template).length, template.id).toBeGreaterThan(1);
+        continue;
+      }
+
+      const expected = { mobile: "phone", tablet: "tablet", laptop: "laptop" }[template.category];
+      expect([...categories], template.id).toEqual([expected]);
+    }
+  });
+
+  it("shows everything under All and only the category under a category", () => {
+    expect(searchProjectTemplates("all", "")).toEqual(PROJECT_TEMPLATES);
+
+    for (const category of activeTemplateCategories()) {
+      const results = searchProjectTemplates(category, "");
+      expect(results.length, category).toBeGreaterThan(0);
+      for (const template of results) expect(template.category).toBe(category);
+    }
+  });
+
+  it("searches names, descriptions, tags and the category label", () => {
+    expect(searchProjectTemplates("all", "emerald").map((entry) => entry.id)).toContain(
+      "emerald-finance-showcase",
+    );
+    expect(searchProjectTemplates("tablet", "Tablet").map((entry) => entry.id)).toEqual([
+      "crimson-editorial-tablet", "neon-portfolio-tablet",
+    ]);
+    expect(searchProjectTemplates("mobile", "ipad")).toEqual([]);
+    expect(searchProjectTemplates("all", "   ")).toEqual(PROJECT_TEMPLATES);
+  });
+
+  it("resolves a template by id, and nothing by an id it does not know", () => {
+    expect(getProjectTemplate("emerald-finance-showcase")?.name).toBe("Emerald Finance Showcase");
+    expect(getProjectTemplate("no-such-template")).toBeUndefined();
+  });
+
+  it("lists every device a composition places, without repeats", () => {
+    expect(templateDeviceIds(PROJECT_TEMPLATES[0])).toEqual(["iphone-17-pro"]);
+    expect(templateDeviceIds(getProjectTemplate("amber-agency-ecosystem")!)).toEqual([
+      "macbook",
+      "ipad",
+      "iphone-17-pro",
+    ]);
   });
 });

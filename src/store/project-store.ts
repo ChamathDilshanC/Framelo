@@ -1,6 +1,9 @@
 "use client";
 
 import { create } from "zustand";
+import { useEditorStore } from "./editor-store";
+import { cameraPoseFor } from "@/lib/project-view";
+import type { ProjectEditorState } from "@/types/project";
 
 import { evaluateTransform, findTrack } from "@/engine/animation/evaluate";
 import { staticPropertyValue } from "@/engine/animation/property-value";
@@ -84,13 +87,15 @@ interface ProjectStoreState {
   past: Project[];
   future: Project[];
   saveStatus: SaveStatus;
+  saveError: string | null;
   lastSavedAt: string | null;
 
   // lifecycle
   loadProject: (project: Project) => void;
   closeProject: () => void;
-  setSaveStatus: (status: SaveStatus) => void;
+  setSaveStatus: (status: SaveStatus, error?: string) => void;
   markSaved: (savedAt?: string) => void;
+  setEditorState: (view: ProjectEditorState) => void;
 
   // project level
   renameProject: (name: string) => void;
@@ -122,6 +127,7 @@ interface ProjectStoreState {
     value: number,
     options?: CommitOptions & { time?: number },
   ) => void;
+  translateLayer: (layerId: string, delta: { x: number; y: number; z: number }) => void;
   resetTransform: (layerId: string) => void;
 
   // keyframes
@@ -243,24 +249,33 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => {
     project: null,
     ...emptyHistory,
     saveStatus: "idle",
+    saveError: null,
     lastSavedAt: null,
 
     loadProject(project) {
       breakCoalescing();
-      set({ project, ...emptyHistory, saveStatus: "saved", lastSavedAt: project.updatedAt });
+      useEditorStore.getState().restoreProjectView(project);
+      set({ project, ...emptyHistory, saveStatus: "saved", saveError: null, lastSavedAt: project.updatedAt });
     },
 
     closeProject() {
       breakCoalescing();
-      set({ project: null, ...emptyHistory, saveStatus: "idle", lastSavedAt: null });
+      set({ project: null, ...emptyHistory, saveStatus: "idle", saveError: null, lastSavedAt: null });
     },
 
-    setSaveStatus(status) {
-      set({ saveStatus: status });
+    setSaveStatus(status, error) {
+      set({ saveStatus: status, saveError: error ?? null });
+    },
+
+    setEditorState(view) {
+      const project = get().project;
+      if (!project || JSON.stringify(project.editorState) === JSON.stringify(view)) return;
+      set({ project: { ...project, editorState: structuredClone(view), updatedAt: new Date().toISOString() }, saveStatus: "unsaved" });
     },
 
     markSaved(savedAt) {
-      set({ saveStatus: "saved", lastSavedAt: savedAt ?? new Date().toISOString() });
+      if (savedAt && get().project?.updatedAt !== savedAt) return;
+      set({ saveStatus: "saved", saveError: null, lastSavedAt: savedAt ?? new Date().toISOString() });
     },
 
     renameProject(name) {
@@ -470,7 +485,7 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => {
                 ? track.keyframes.map((kf) => (kf.id === existing.id ? { ...kf, value } : kf))
                 : sortByTime([
                     ...track.keyframes,
-                    { id: createId("kf"), time: roundTime(time), value, easing: "easeInOut" },
+                    { id: createId("kf"), time: roundTime(time), value, easing: "smoother" },
                   ]);
 
               return {
@@ -491,6 +506,24 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => {
           }),
         { coalesceKey: options.coalesceKey ?? `transform:${layerId}:${property}` },
       );
+    },
+
+    translateLayer(layerId, delta) {
+      if (![delta.x, delta.y, delta.z].every(Number.isFinite)) return;
+      if (Math.abs(delta.x) + Math.abs(delta.y) + Math.abs(delta.z) < 1e-8) return;
+      breakCoalescing();
+      commit(project => updateLayer(project, layerId, layer => {
+        if (layer.locked) return layer;
+        return {
+          ...layer,
+          transform: { ...layer.transform, x: layer.transform.x + delta.x, y: layer.transform.y + delta.y, z: layer.transform.z + delta.z },
+          animations: layer.animations.map(track => {
+            if (track.property !== "x" && track.property !== "y" && track.property !== "z") return track;
+            const shift = delta[track.property];
+            return { ...track, keyframes: track.keyframes.map(key => ({ ...key, value: key.value + shift })) };
+          }),
+        };
+      }));
     },
 
     resetTransform(layerId) {
@@ -514,7 +547,7 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => {
       );
     },
 
-    addKeyframe(layerId, property, time, value, easing = "easeInOut") {
+    addKeyframe(layerId, property, time, value, easing = "smoother") {
       breakCoalescing();
       commit((project) =>
         updateLayer(project, layerId, (layer) => {
@@ -1012,6 +1045,8 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => {
         background: structuredClone(template.background),
         layers,
         templateId: template.id,
+        editorState: { currentTime: template.posterTime ?? 0, cameraView: template.cameraView ?? "front",
+          camera: cameraPoseFor(template.cameraView ?? "front"), selectedLayerId: layers.find(layer => layer.type === "device")?.id ?? null },
         // The device motion no longer came from a device template — it came
         // from this one. Leaving the old id would have the library claim a
         // choreography is applied that the project no longer contains.

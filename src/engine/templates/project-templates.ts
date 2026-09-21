@@ -2,20 +2,45 @@ import type { CameraViewId } from "@/engine/devices/device-presets";
 import type { TextLayerMetadata } from "@/engine/text/text-types";
 import type { BackgroundConfig } from "@/types/background";
 import type { DeviceFinishId } from "@/types/device";
-import type { Transform } from "@/types/layer";
+import type { DeviceLayerMetadata, Transform } from "@/types/layer";
+import type { EasingType } from "@/types/animation";
+import { STUDIO_TEMPLATES } from "./studio-templates";
 import { NEBULA_TEMPLATE } from "./nebula-template";
+import { EMERALD_TEMPLATE } from "./emerald-template";
+
+/**
+ * What a template is *for*, in the only terms a browser can filter on.
+ *
+ * The form factor, not the mood: someone opening the browser is deciding what
+ * they are making a mockup of, and "editorial" versus "cinematic" is a
+ * distinction they can only make after looking at the card anyway. Every
+ * template carries this explicitly — nothing here is ever inferred from a
+ * name, so renaming a template can never silently move it between tabs.
+ */
+export const TEMPLATE_CATEGORIES = ["mobile", "tablet", "laptop", "multi-device"] as const;
+
+export type TemplateCategory = (typeof TEMPLATE_CATEGORIES)[number];
+
+export const TEMPLATE_CATEGORY_LABELS: Record<TemplateCategory, string> = {
+  mobile: "Mobile",
+  tablet: "Tablet",
+  laptop: "Laptop",
+  "multi-device": "Multi-device",
+};
 
 export interface TemplateEntrance {
   start: number;
   end: number;
   from: Partial<Transform>;
+  easing?: EasingType;
   /** Optional restrained drift after the composition has settled. */
-  drift?: { start: number; to: Partial<Transform> };
+  drift?: { start: number; to: Partial<Transform>; easing?: EasingType };
 }
 export interface TemplateDeviceSpec {
+  deviceId?: string;
   name: string;
   transform: Partial<Transform>;
-  screenArtwork: "editorial" | "manifesto" | "landscape" | "nebula";
+  screenArtwork: NonNullable<DeviceLayerMetadata["screenArtwork"]>;
   shadowIntensity?: number;
   entrance: TemplateEntrance;
 }
@@ -43,7 +68,8 @@ export interface ProjectTemplate {
   textLayers?: TemplateTextSpec[];
   cameraView?: CameraViewId;
   posterTime?: number;
-  category?: "product" | "cinematic" | "editorial" | "social" | "tech";
+  /** Which form factor the composition is built around. Drives filtering. */
+  category: TemplateCategory;
 }
 const fill = (color: string): TextLayerMetadata["fill"] => ({
   type: "solid", color, gradient: { from: color, to: color, angle: 0 },
@@ -54,7 +80,7 @@ export const PROJECT_TEMPLATES: ProjectTemplate[] = [{
   id: "kinetic-mobile-presentation",
   name: "Kinetic Mobile Presentation",
   description: "Editorial mobile showcase with layered cinematic device motion.",
-  category: "editorial",
+  category: "mobile",
   canvas: { width: 1080, height: 1920, fps: 60, duration: 6 },
   deviceId: "iphone-17-pro", finish: "silver", cameraView: "front", posterTime: 3,
   background: {
@@ -99,4 +125,51 @@ export const PROJECT_TEMPLATES: ProjectTemplate[] = [{
       entrance: { start: 0, end: 1.1, from: { rotationZ: -22, scaleX: 0.8, scaleY: 0.8, opacity: 0 } },
     },
   ],
-}, NEBULA_TEMPLATE];
+}, NEBULA_TEMPLATE, EMERALD_TEMPLATE, ...STUDIO_TEMPLATES];
+
+const BY_ID = new Map(PROJECT_TEMPLATES.map((template) => [template.id, template]));
+
+export function getProjectTemplate(id: string): ProjectTemplate | undefined {
+  return BY_ID.get(id);
+}
+
+/** Every device the composition places, in layer order and without repeats. */
+export function templateDeviceIds(template: ProjectTemplate): string[] {
+  const ids = template.deviceLayers?.map((spec) => spec.deviceId ?? template.deviceId) ?? [
+    template.deviceId,
+  ];
+  return [...new Set(ids)];
+}
+
+/** Categories that actually have templates in them. */
+export function activeTemplateCategories(): TemplateCategory[] {
+  const present = new Set(PROJECT_TEMPLATES.map((template) => template.category));
+  return TEMPLATE_CATEGORIES.filter((category) => present.has(category));
+}
+
+/**
+ * Filter the catalogue.
+ *
+ * Category comes from the template's own metadata, never from its name, so the
+ * tabs keep meaning the same thing after a rename. The query matches the name,
+ * the description, the tags and the category label, because "iPad", "phone"
+ * and "green" are all things someone reasonably types looking for a layout.
+ */
+export function searchProjectTemplates(
+  category: TemplateCategory | "all",
+  query: string,
+): ProjectTemplate[] {
+  const needle = query.trim().toLowerCase();
+
+  return PROJECT_TEMPLATES.filter((template) => {
+    if (category !== "all" && template.category !== category) return false;
+    if (!needle) return true;
+
+    return (
+      template.name.toLowerCase().includes(needle) ||
+      template.description.toLowerCase().includes(needle) ||
+      TEMPLATE_CATEGORY_LABELS[template.category].toLowerCase().includes(needle) ||
+      template.tags.some((tag) => tag.toLowerCase().includes(needle))
+    );
+  });
+}

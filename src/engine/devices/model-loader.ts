@@ -41,10 +41,10 @@ const pending = new Set<string>();
  *
  * Zero would mean re-parsing tens of megabytes every time the user flicks
  * between two devices; unbounded would mean the whole library sits in memory
- * because it was once clicked. One keeps A-to-B-and-back instant while the
- * budget stays at two models.
+ * because it was once clicked. Two idle entries keep recent device switches warm without retaining the
+ * whole library.
  */
-const UNUSED_MODEL_BUDGET = 1;
+const UNUSED_MODEL_BUDGET = 2;
 
 let useCounter = 0;
 
@@ -219,6 +219,13 @@ function prepareInstance(
     mesh.castShadow = true;
     mesh.receiveShadow = true;
   });
+
+  if (!hasScreen) {
+    for (const material of ownedMaterials) material.dispose();
+    screen.material.dispose();
+    materials.clear();
+    throw new DeviceModelError(`${device.name} has no editable display mesh`, device.id);
+  }
 
   normalizeModel(inner, model);
 
@@ -446,21 +453,39 @@ function applyTweak(material: THREE.Material, tweak: MaterialTweak): void {
   material.needsUpdate = true;
 }
 
-/** True while any device GLB is still downloading. */
+/** GPU/media preparation and reveal lifetimes, also awaited by export. */
+const preparations = new Set<Promise<void>>();
+export function beginDevicePreparation(): () => void {
+  let resolve!: () => void;
+  const promise = new Promise<void>((done) => { resolve = done; });
+  preparations.add(promise);
+  return () => { preparations.delete(promise); resolve(); };
+}
+
+/** Intent prefetch shares the same cache as mounted models. */
+export async function preloadDeviceModel(device: DeviceDefinition): Promise<void> {
+  if (!device.model) return;
+  await acquireScene(device.model, device);
+  releaseUnusedModels();
+}
+
 export function hasPendingModelLoads(): boolean {
-  return pending.size > 0;
+  return pending.size > 0 || preparations.size > 0;
 }
 
 /** Resolves once every in-flight device load has settled. Used before export. */
 export async function waitForDeviceModels(): Promise<void> {
   const inFlight = [...cache.values()];
   await Promise.allSettled(inFlight);
+  // Give React a frame to attach resolved instances and register texture/GPU work.
+  await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  while (preparations.size) await Promise.all([...preparations]);
 }
 
 /**
  * Drop cached scenes beyond the unused budget.
  *
- * Called when a device is deselected. The most recently used idle model is
+ * Called when a device is deselected. The two most recently used idle models are
  * kept so switching back is instant; anything older is disposed, because a
  * 24 MB scene graph should not sit in memory for a device the project stopped
  * referencing several choices ago.

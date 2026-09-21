@@ -47,13 +47,21 @@ function useVideoTexture(url: string | null, options: MediaOptions): ScreenTextu
     texture.magFilter = THREE.LinearFilter;
     texture.generateMipmaps = false;
     textureRef.current = texture;
-    const unregister = registerScreenVideo(video);
+    const unregister = options.getTime ? () => {} : registerScreenVideo(video);
     video.onloadedmetadata = () => {
-      setState({ url, texture, aspect: video.videoWidth / video.videoHeight, status: "ready", error: null });
+
       const time = options.getTime ? options.getTime() : useEditorStore.getState().currentTime;
       video.currentTime = videoTimeAt(time, video.duration, loop);
     };
+    let announcedReady = false;
+    const announceReady = () => {
+      if (announcedReady || video.seeking || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
+      announcedReady = true;
+      setState({ url, texture, aspect: video.videoWidth / video.videoHeight, status: "ready", error: null });
+    };
+    video.onloadeddata = announceReady;
     video.onseeked = () => {
+      announceReady();
       texture.needsUpdate = true;
       // A timeline scrub may arrive during an earlier seek. Honour the newest
       // playhead after that seek finishes instead of leaving the old frame up.
@@ -86,6 +94,7 @@ function useVideoTexture(url: string | null, options: MediaOptions): ScreenTextu
   React.useEffect(() => {
     if (options.getTime) return;
     return useEditorStore.subscribe((editor) => {
+      if (editor.isExporting) return;
       const video = element.current;
       if (!video || video.readyState < HTMLMediaElement.HAVE_METADATA) return;
       const target = videoTimeAt(editor.currentTime, video.duration, loop);
@@ -99,6 +108,7 @@ function useVideoTexture(url: string | null, options: MediaOptions): ScreenTextu
   }, [options.getTime, loop]);
 
   useFrame(() => {
+    if (!options.getTime && useEditorStore.getState().isExporting) return;
     const video = element.current;
     if (!video || video.readyState < HTMLMediaElement.HAVE_METADATA) return;
     const time = options.getTime ? options.getTime() : useEditorStore.getState().currentTime;

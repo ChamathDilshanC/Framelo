@@ -15,6 +15,8 @@ export type EasingFunction = (t: number) => number;
  */
 export const EASING_FUNCTIONS: Record<EasingType, EasingFunction> = {
   linear: (t) => t,
+  // Minimum-jerk transition: zero velocity and acceleration at both ends.
+  smoother: (t) => t * t * t * (t * (6 * t - 15) + 10),
   easeIn: (t) => t * t * t,
   easeOut: (t) => 1 - Math.pow(1 - t, 3),
   easeInOut: (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2),

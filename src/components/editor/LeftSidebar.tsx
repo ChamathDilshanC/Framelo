@@ -1,6 +1,13 @@
 "use client";
 
-import { Images, LibraryBig, PanelLeftClose, Smartphone, Type } from "lucide-react";
+import {
+  Images,
+  LayoutTemplate,
+  LibraryBig,
+  PanelLeftClose,
+  Smartphone,
+  Type,
+} from "lucide-react";
 import * as React from "react";
 
 import { AssetLibrary } from "@/components/assets/AssetLibrary";
@@ -11,25 +18,32 @@ import { IconButton } from "@/components/ui/icon-button";
 import { cn } from "@/lib/utils";
 import { useEditorStore, type LeftPanelTab } from "@/store/editor-store";
 
-const TABS: Array<{
+interface PanelEntry {
   id: LeftPanelTab;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-}> = [
+}
+
+const TABS: PanelEntry[] = [
   { id: "devices", label: "Devices", icon: Smartphone },
   { id: "text", label: "Text", icon: Type },
   { id: "assets", label: "Assets", icon: Images },
-  // One rail entry for four catalogues. They were two before — Motion Presets
-  // and Templates — and the two that were added would have made four icons for
-  // four things nobody can tell apart from an icon.
+  // One rail entry for three catalogues. They were two before — Motion Presets
+  // and Templates — and the ones that were added would have made an icon each
+  // for things nobody can tell apart from an icon.
   { id: "library", label: "Library", icon: LibraryBig },
 ];
+
+/** Where Templates sits on the rail: between Assets and Library. */
+const TEMPLATES_AFTER: LeftPanelTab = "assets";
 
 export function LeftSidebar() {
   const tab = useEditorStore((state) => state.leftPanelTab);
   const open = useEditorStore((state) => state.leftPanelOpen);
   const setTab = useEditorStore((state) => state.setLeftPanelTab);
   const togglePanel = useEditorStore((state) => state.toggleLeftPanel);
+  const templatesOpen = useEditorStore((state) => state.templateBrowserOpen);
+  const setTemplatesOpen = useEditorStore((state) => state.setTemplateBrowserOpen);
 
   const active = TABS.find((entry) => entry.id === tab) ?? TABS[0];
 
@@ -41,17 +55,32 @@ export function LeftSidebar() {
         className="flex w-11 shrink-0 flex-col items-center gap-1 border-r border-line bg-surface py-2"
       >
         {TABS.map((entry) => (
-          <IconButton
-            key={entry.id}
-            icon={entry.icon}
-            label={entry.label}
-            active={open && entry.id === tab}
-            tooltipSide="right"
-            onClick={() => {
-              if (open && entry.id === tab) togglePanel(false);
-              else setTab(entry.id);
-            }}
-          />
+          <React.Fragment key={entry.id}>
+            <IconButton
+              icon={entry.icon}
+              label={entry.label}
+              active={open && entry.id === tab}
+              tooltipSide="right"
+              onClick={() => {
+                if (open && entry.id === tab) togglePanel(false);
+                else setTab(entry.id);
+              }}
+            />
+            {/*
+              Templates is a rail entry like the rest, but it opens a surface
+              over the editor rather than the side panel — a whole composition
+              is chosen by comparing layouts, which needs more than a column.
+            */}
+            {entry.id === TEMPLATES_AFTER ? (
+              <IconButton
+                icon={LayoutTemplate}
+                label="Templates"
+                active={templatesOpen}
+                tooltipSide="right"
+                onClick={() => setTemplatesOpen(!templatesOpen)}
+              />
+            ) : null}
+          </React.Fragment>
         ))}
       </nav>
 

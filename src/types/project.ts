@@ -2,10 +2,18 @@ import type { BackgroundConfig } from "./background";
 import type { Layer } from "./layer";
 
 /**
- * 3: the composition gained a work area, and the project remembers which
- * template built it and how it was last exported.
+ * 4: projects include the saved playhead, camera pose and selection.
+ * 3: work area, template identity and export settings.
  */
-export const PROJECT_VERSION = 3;
+export const PROJECT_VERSION = 4;
+
+/** Static viewport and playhead, separate from animated layer transforms. */
+export interface ProjectEditorState {
+  currentTime: number;
+  cameraView: import('@/engine/devices/device-presets').CameraViewId;
+  camera: { position: [number, number, number]; target: [number, number, number] };
+  selectedLayerId: string | null;
+}
 
 /**
  * The in/out range, as After Effects and Premiere mean it.
@@ -69,6 +77,7 @@ export interface Project {
   templateId?: string;
   deviceMotionTemplateId?: string;
   exportSettings?: ExportSettings;
+  editorState?: ProjectEditorState;
   createdAt: string;
   updatedAt: string;
 }

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="620" viewBox="0 0 1000 620">
+<!-- Atmospheric market rows. Deliberately faint: depth, never content. -->
+<g font-family="Inter,Helvetica,Arial,sans-serif" fill="#cdeedd">
+  <g stroke="#cdeedd" stroke-opacity=".3" stroke-width="2">
+    <path d="M0 96h1000M0 232h1000M0 368h1000M0 504h1000"/>
+  </g>
+  <g font-size="30" opacity=".62">
+    <text x="8" y="60">VRDT</text><text x="8" y="196">ETH</text><text x="8" y="332">BTC</text><text x="8" y="468">SOL</text>
+  </g>
+  <g font-size="24" opacity=".42">
+    <text x="170" y="60">Verdant</text><text x="170" y="196">Ethereum</text><text x="170" y="332">Bitcoin</text><text x="170" y="468">Solana</text>
+  </g>
+  <g font-size="28" opacity=".5" text-anchor="end">
+    <text x="992" y="60">$41,208</text><text x="992" y="196">$28,940</text><text x="992" y="332">$17,282</text><text x="992" y="468">$9,116</text>
+  </g>
+  <g fill="none" stroke="#7fe6b3" stroke-opacity=".5" stroke-width="4" stroke-linecap="round">
+    <path d="M470 62q40-38 78-10t72-40 76 16 74-32"/>
+    <path d="M470 198q44 26 80-10t70 22 76-36 74 12"/>
+    <path d="M470 334q42-44 80 0t70-26 76 30 74-24"/>
+    <path d="M470 470q40 20 80-16t70 26 76-30 74 14"/>
+  </g>
+  <g font-size="26" opacity=".34">
+    <text x="8" y="596">HOLDINGS</text><text x="360" y="596">PORTFOLIO</text><text x="700" y="596">MARKET  ·  24H</text>
+  </g>
+</g>
+</svg>

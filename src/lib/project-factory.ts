@@ -36,7 +36,10 @@ export function createDeviceLayer(deviceId = DEFAULT_DEVICE_ID): Layer {
     locked: false,
     // Opens on the hero-left preset: a new project should look like a product
     // shot before anything is touched.
-    transform: { ...IDENTITY_TRANSFORM, ...HERO_LEFT.rotation },
+    transform: { ...IDENTITY_TRANSFORM, ...HERO_LEFT.rotation,
+      ...(device.category === "tablet" ? { rotationX: 0, rotationY: -16, rotationZ: 0 } : {}),
+      ...(device.category === "laptop" ? { rotationX: 12, rotationY: -16, rotationZ: 0, scaleX: 0.85, scaleY: 0.85, scaleZ: 0.85 } : {}),
+    },
     animations: [],
     metadata: {
       ...DEFAULT_DEVICE_METADATA,

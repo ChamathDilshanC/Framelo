@@ -120,6 +120,17 @@ export const ExportSettingsSchema = z.object({
   range: z.enum(["composition", "work-area"]),
 });
 
+const Vector3Schema = z.tuple([z.number().finite(), z.number().finite(), z.number().finite()]);
+export const ProjectEditorStateSchema = z.object({
+  currentTime: z.number().finite().min(0),
+  cameraView: z.enum(["front", "back", "left-hero", "right-hero", "three-quarter", "custom"]),
+  camera: z.object({ position: Vector3Schema, target: Vector3Schema }).refine(
+    pose => pose.position.some((value, index) => Math.abs(value - pose.target[index]) > 0.001),
+    "Camera position must differ from its target",
+  ),
+  selectedLayerId: z.string().nullable(),
+});
+
 export const ProjectSchema = z.object({
   version: z.number().int().min(1),
   id: z.string(),
@@ -132,6 +143,7 @@ export const ProjectSchema = z.object({
   templateId: z.string().max(80).optional(),
   deviceMotionTemplateId: z.string().max(80).optional(),
   exportSettings: ExportSettingsSchema.optional(),
+  editorState: ProjectEditorStateSchema.optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

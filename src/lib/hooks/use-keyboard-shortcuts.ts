@@ -101,6 +101,7 @@ function isTypingTarget(target: EventTarget | null): boolean {
 export function useKeyboardShortcuts(fps: number): void {
   React.useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
+      if (useEditorStore.getState().isExporting) return;
       if (isTypingTarget(event.target)) return;
 
       const editor = useEditorStore.getState();

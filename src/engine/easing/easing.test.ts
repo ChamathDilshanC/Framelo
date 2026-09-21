@@ -76,3 +76,16 @@ describe("easing", () => {
     }
   });
 });
+
+
+describe("smooth motion", () => {
+  it("arrives with zero velocity and acceleration without a midpoint jerk", () => {
+    const f = EASING_FUNCTIONS.smoother;
+    const h = 0.0001;
+    expect(f(0.5)).toBeCloseTo(0.5, 10);
+    expect((f(h) - f(0)) / h).toBeCloseTo(0, 5);
+    expect((f(1) - f(1-h)) / h).toBeCloseTo(0, 5);
+    expect((f(2*h) - 2*f(h) + f(0)) / (h*h)).toBeLessThan(0.01);
+    expect(Math.abs((f(0.5+h) - 2*f(0.5) + f(0.5-h)) / (h*h))).toBeLessThan(0.001);
+  });
+});

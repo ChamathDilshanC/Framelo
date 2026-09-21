@@ -7,7 +7,7 @@ import {
   loadProject as fetchProject,
   saveProject,
 } from "@/lib/projects/project-service";
-import { notify } from "@/lib/toast";
+import { saveProjectNow } from "./use-autosave";
 import { useAssetStore } from "@/store/asset-store";
 import { useEditorStore } from "@/store/editor-store";
 import { useProjectStore } from "@/store/project-store";
@@ -41,9 +41,9 @@ export function useProjectLoader(projectId: string): ProjectLoaderResult {
       setState("loading");
       setError(null);
 
-      await hydrateAssets();
-
       try {
+        await hydrateAssets();
+        if (cancelled) return;
         const existing = await fetchProject(projectId);
         if (cancelled) return;
 
@@ -66,18 +66,9 @@ export function useProjectLoader(projectId: string): ProjectLoaderResult {
 
         const message = caught instanceof Error ? caught.message : "The project could not be read";
 
-        // A corrupt record should not trap the user — fall back to a new project.
-        try {
-          const fresh = { ...createProject(), id: projectId };
-          loadProject(fresh);
-          setDuration(fresh.canvas.duration);
-          setState("ready");
-          setError(message);
-          notify.warning("Project data could not be read", "A new empty project was opened instead.");
-        } catch {
-          setState("error");
-          setError(message);
-        }
+        // Read errors must never replace the user's document with an empty one.
+        setState("error");
+        setError(message);
       }
     }
 
@@ -85,6 +76,8 @@ export function useProjectLoader(projectId: string): ProjectLoaderResult {
 
     return () => {
       cancelled = true;
+      const current = useProjectStore.getState();
+      if (current.project?.id === projectId && current.saveStatus !== "saved") void saveProjectNow(current.project);
       closeProject();
     };
   }, [projectId, loadProject, closeProject, hydrateAssets, setDuration]);

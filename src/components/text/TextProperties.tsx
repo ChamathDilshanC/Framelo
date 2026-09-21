@@ -19,6 +19,7 @@ import { Segmented } from "@/components/ui/segmented";
 import { Select } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
+import { ScreenAlignmentSection } from "./ScreenAlignmentSection";
 import { FontPicker } from "@/components/text/FontPicker";
 import { getFont, nearestWeight } from "@/engine/text/text-fonts";
 import { detectTextScripts } from "@/engine/text/text-script";
@@ -52,6 +53,7 @@ export function TextProperties({ layer }: TextPropertiesProps) {
   return (
     <>
       <ContentSection layer={layer} style={style} />
+      <ScreenAlignmentSection layer={layer} />
       <TypographySection layer={layer} style={style} />
       <ColorSection layer={layer} style={style} />
       <ParagraphSection layer={layer} style={style} />

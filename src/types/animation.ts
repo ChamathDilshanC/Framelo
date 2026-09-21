@@ -87,6 +87,7 @@ export const EASING_TYPES = [
   "expo",
   "circ",
   "quint",
+  "smoother",
 ] as const;
 
 export type EasingType = (typeof EASING_TYPES)[number];
@@ -125,6 +126,7 @@ export const EASING_LABELS: Record<EasingType, string> = {
   expo: "Expo",
   circ: "Circ",
   quint: "Quint",
+  smoother: "Smooth In Out",
 };
 
 export const PROPERTY_LABELS: Record<AnimatableProperty, string> = {

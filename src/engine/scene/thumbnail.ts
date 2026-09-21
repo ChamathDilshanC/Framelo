@@ -1,5 +1,6 @@
 "use client";
 
+import { useEditorStore } from "@/store/editor-store";
 import * as THREE from "three";
 
 import { hasPendingModelLoads } from "@/engine/devices/model-loader";
@@ -70,7 +71,7 @@ function stageIsReady(): boolean {
  * caller is expected to fire this optimistically and not care.
  */
 export async function captureThumbnail(options: ThumbnailOptions): Promise<boolean> {
-  if (!stageIsReady()) return false;
+  if (useEditorStore.getState().isExporting || !stageIsReady()) return false;
 
   const now = Date.now();
   const previous = lastCapture.get(options.projectId) ?? 0;

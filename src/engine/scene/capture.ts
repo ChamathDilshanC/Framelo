@@ -71,6 +71,12 @@ export class SceneNotReadyError extends Error {
  * Requires `preserveDrawingBuffer` on the canvas.
  */
 export async function captureFrame(options: CaptureOptions): Promise<Blob> {
+  const output = await captureCanvas(options);
+  return toBlob(output, options.mimeType ?? "image/png", options.quality);
+}
+
+/** Reusable frame surface for image and frame-by-frame video encoders. */
+export async function captureCanvas(options: CaptureOptions): Promise<HTMLCanvasElement> {
   const current = handle;
   if (!current) throw new SceneNotReadyError();
 
@@ -154,8 +160,9 @@ export async function captureFrame(options: CaptureOptions): Promise<Blob> {
   }
 
   ctx.drawImage(frame, 0, 0, width, height);
+  frame.width = frame.height = 1;
 
-  return toBlob(output, options.mimeType ?? "image/png", options.quality);
+  return output;
 }
 
 function isPerspective(camera: THREE.Camera): camera is THREE.PerspectiveCamera {
@@ -166,7 +173,8 @@ function toBlob(canvas: HTMLCanvasElement, mimeType: string, quality?: number): 
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => {
-        if (blob) resolve(blob);
+        if (blob && blob.type === mimeType) resolve(blob);
+        else if (blob) reject(new Error(`This browser cannot encode ${mimeType}. Choose PNG instead.`));
         else reject(new Error("The canvas could not be encoded"));
       },
       mimeType,

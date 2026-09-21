@@ -23,7 +23,7 @@ import { useProjectStore } from "@/store/project-store";
 export function useProjectThumbnail(): void {
   const projectId = useProjectStore((state) => state.project?.id ?? null);
   const saveStatus = useProjectStore((state) => state.saveStatus);
-  const isPlaying = useEditorStore((state) => state.isPlaying);
+  const isPlaying = useEditorStore((state) => state.isPlaying || state.isExporting);
 
   const signature = useProjectStore((state) => {
     const project = state.project;

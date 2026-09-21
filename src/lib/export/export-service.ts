@@ -1,5 +1,7 @@
 import { waitForDeviceModels } from "@/engine/devices/model-loader";
 import { captureFrame, type CaptureMimeType } from "@/engine/scene/capture";
+import { useEditorStore } from "@/store/editor-store";
+import { presetPreview } from "@/engine/motion/preset-preview";
 import type { BackgroundConfig } from "@/types/background";
 
 export type ExportFormat = "png" | "jpg" | "webp" | "webm" | "mp4" | "gif";
@@ -11,7 +13,7 @@ const IMAGE_MIME_TYPES: Record<string, CaptureMimeType> = {
 };
 
 /** Formats that carry an alpha channel. */
-const ALPHA_FORMATS = new Set<ExportFormat>(["png", "webp"]);
+const ALPHA_FORMATS = new Set<ExportFormat>(["png", "webp", "webm"]);
 
 export function supportsTransparency(format: ExportFormat): boolean {
   return ALPHA_FORMATS.has(format);
@@ -25,6 +27,10 @@ export interface ExportRequest {
   /** Base filename, without extension. */
   name: string;
   quality?: number;
+  fps?: number;
+  startTime?: number;
+  endTime?: number;
+  signal?: AbortSignal;
   /**
    * The composition background. Backgrounds are a DOM layer behind the canvas,
    * so export has to paint them back underneath the 3D frame.
@@ -101,16 +107,12 @@ const imageExporter: Exporter = {
   },
 };
 
-/**
- * Placeholder for the video pipeline described in architecture.md §23-26.
- * Keeping it in the registry means the UI can describe capabilities honestly
- * today and gain video by swapping this single object out later.
- */
 const videoExporter: Exporter = {
-  formats: ["webm", "mp4", "gif"],
-  supported: false,
-  async run(request) {
-    throw new ExportNotSupportedError(request.format);
+  formats: ["webm", "mp4"],
+  supported: true,
+  async run(request, onProgress) {
+    const { renderVideo } = await import("./video-export");
+    return renderVideo(request, onProgress);
   },
 };
 
@@ -129,7 +131,22 @@ export const exportService = {
     const exporter = findExporter(request.format);
     if (!exporter) throw new ExportNotSupportedError(request.format);
     if (!exporter.supported) throw new ExportNotSupportedError(request.format);
-    return exporter.run(request, onProgress);
+    const editor = useEditorStore.getState();
+    if (editor.isExporting) throw new Error("An export is already running.");
+    request.signal?.throwIfAborted();
+    presetPreview.stop();
+    useEditorStore.setState({ isExporting: true, isPlaying: false });
+    try {
+      await document.fonts?.ready;
+      const result = await exporter.run(request, onProgress);
+      if (request.signal?.aborted) {
+        URL.revokeObjectURL(result.url);
+        request.signal.throwIfAborted();
+      }
+      return result;
+    } finally {
+      useEditorStore.setState({ currentTime: editor.currentTime, isPlaying: editor.isPlaying, isExporting: false });
+    }
   },
 
   download(result: ExportResult): void {

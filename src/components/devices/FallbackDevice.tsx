@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { RoundedBox } from "@react-three/drei";
 
 import { DeviceScreen } from "@/components/devices/DeviceScreen";
 import { ProceduralPhone } from "@/components/devices/ProceduralPhone";
@@ -50,6 +51,28 @@ export const FallbackDevice = React.memo(function FallbackDevice({
   bodyColor,
   onScreenStatusChange,
 }: FallbackDeviceProps) {
+  if (device.category === "laptop") {
+    const display = { ...device,
+      body: { ...device.body, height: 2.85, depth: 0.085 },
+      screen: { ...device.screen, position: [0, 0, 0.054] as [number, number, number] },
+    };
+    return <group>
+      <group position={[0, 0.02, -1.25]} rotation={[-0.12, 0, 0]}>
+        <ProceduralPhone device={display} bodyColor={bodyColor}>
+          <DeviceScreen device={display} mediaUrl={mediaUrl} mediaType={mediaType}
+            getTime={getTime} getPlaying={getPlaying} videoLoop={videoLoop} videoMuted={videoMuted}
+            fit={fit} brightness={brightness} onStatusChange={onScreenStatusChange} />
+        </ProceduralPhone>
+      </group>
+      <RoundedBox args={[4.4, 0.13, 2.8]} radius={0.04} position={[0, -1.45, 0]}>
+        <meshStandardMaterial color={bodyColor} metalness={0.85} roughness={0.3} />
+      </RoundedBox>
+      <mesh position={[0, -1.375, -0.45]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[3.8, 1.2]} />
+        <meshStandardMaterial color="#17181b" roughness={0.7} />
+      </mesh>
+    </group>;
+  }
   return (
     <ProceduralPhone device={device} bodyColor={bodyColor}>
       <DeviceScreen

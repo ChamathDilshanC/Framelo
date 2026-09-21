@@ -187,6 +187,7 @@ const SAVE_LABELS: Record<SaveStatus, { label: string; icon: typeof Check; class
 
 function SaveIndicator({ status }: { status: SaveStatus }) {
   const project = useProjectStore((state) => state.project);
+  const saveError = useProjectStore((state) => state.saveError);
   const { label, icon: Icon, className } = SAVE_LABELS[status];
 
   const canRetry = status === "error" || status === "unsaved" || status === "offline";
@@ -198,7 +199,10 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
       onClick={() => {
         if (!project) return;
         void saveProjectNow(project).then((ok) => {
-          if (ok) notify.success("Project saved");
+          if (!ok) return;
+          const state = useProjectStore.getState();
+          if (state.saveStatus === "offline") notify.info("Saved locally", state.saveError ?? "Cloud sync will retry when connected.");
+          else notify.success("Saved to your account");
         });
       }}
       className={cn(
@@ -208,7 +212,7 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
       )}
       title={
         status === "offline"
-          ? "Your draft is safe on this device. Click to retry syncing."
+          ? `${saveError ?? "Your draft is safe on this device."} Click to retry syncing.`
           : canRetry
             ? "Save now"
             : label

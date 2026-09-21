@@ -40,7 +40,12 @@ function run<T>(mode: IDBTransactionMode, work: (store: IDBObjectStore) => IDBRe
       new Promise<T>((resolve, reject) => {
         const transaction = db.transaction(STORE_NAME, mode);
         const request = work(transaction.objectStore(STORE_NAME));
-        request.onsuccess = () => resolve(request.result);
+        // A successful request is not durable until the transaction commits.
+        let result: T;
+        request.onsuccess = () => { result = request.result; };
+        transaction.oncomplete = () => resolve(result);
+        transaction.onabort = () => reject(transaction.error ?? new Error("Local database transaction aborted"));
+        transaction.onerror = () => reject(transaction.error ?? new Error("Local database transaction failed"));
         request.onerror = () => reject(request.error ?? new Error("Local database request failed"));
       }),
   );

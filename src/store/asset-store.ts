@@ -39,6 +39,8 @@ interface AssetStoreState {
   getAsset: (assetId: string | null | undefined) => ResolvedAsset | null;
 }
 
+let hydration: Promise<void> | null = null;
+
 export const useAssetStore = create<AssetStoreState>((set, get) => ({
   assets: [SAMPLE_ASSET],
   hydrated: false,
@@ -47,7 +49,8 @@ export const useAssetStore = create<AssetStoreState>((set, get) => ({
 
   async hydrate() {
     if (get().hydrated) return;
-
+    if (hydration) return hydration;
+    hydration = (async () => {
     try {
       const stored = await projectStorage.listAssets();
       const resolved = await Promise.all(
@@ -62,15 +65,19 @@ export const useAssetStore = create<AssetStoreState>((set, get) => ({
       set({
         assets: [SAMPLE_ASSET, ...resolved.filter((asset): asset is ResolvedAsset => asset !== null)],
         hydrated: true,
-        error: null,
+        error: resolved.some(asset => asset === null) ? "Some saved media files are unavailable on this device." : null,
       });
+      if (resolved.some(asset => asset === null)) notify.warning("Some saved media is unavailable", "Layer assignments are preserved. Replace missing files to restore their screens.");
     } catch (error) {
-      set({ hydrated: true, error: toMessage(error) });
+      set({ hydrated: false, error: toMessage(error) });
       notify.warning(
         "Saved media could not be restored",
-        "Your project is intact, but uploaded media may need to be added again.",
+        "Your project is intact. Try reopening when local storage is available.",
       );
+      throw error;
     }
+    })().finally(() => { hydration = null; });
+    return hydration;
   },
 
   async uploadFiles(files) {
@@ -128,8 +135,8 @@ export const useAssetStore = create<AssetStoreState>((set, get) => ({
 
       if (added.length > 0) {
         const next = [...get().assets, ...added];
-        set({ assets: next });
         await persist(next);
+        set({ assets: next });
         notify.success(
           added.length === 1 ? "Media uploaded successfully" : `${added.length} files uploaded`,
           added.length === 1 ? added[0].originalName : undefined,

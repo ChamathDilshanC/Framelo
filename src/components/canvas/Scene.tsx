@@ -12,6 +12,7 @@ import { TextLayerObject } from "@/components/text/TextLayerObject";
 import { evaluateTransform, evaluateTransformWith } from "@/engine/animation/evaluate";
 import { presetPreview } from "@/engine/motion/preset-preview";
 import { getCameraView } from "@/engine/devices/device-presets";
+import { usePlayback } from "@/lib/hooks/use-playback";
 import { sceneRegistry } from "@/engine/scene/capture";
 import { getSoftShadowTexture } from "@/engine/scene/generated-textures";
 import { getDevice } from "@/devices/registry";
@@ -62,6 +63,7 @@ export function Scene({ layers, onScreenError, onDeviceStatusChange, onDropTarge
 
 /** Publishes the renderer to the export service. */
 function SceneBridge() {
+  usePlayback();
   const gl = useThree((state) => state.gl);
   const scene = useThree((state) => state.scene);
   const camera = useThree((state) => state.camera);
@@ -112,38 +114,36 @@ function CameraRig({ fov }: { fov: number }) {
   const resetToken = useEditorStore((state) => state.cameraResetToken);
   const fitToken = useEditorStore((state) => state.cameraFitToken);
   const orbitEnabled = useEditorStore((state) => state.orbitEnabled);
+  const restoreToken = useEditorStore((state) => state.cameraRestoreToken);
+  const applied = React.useRef<{ restore: number; reset: number; camera?: THREE.Camera }>({ restore: -1, reset: -1 });
+  const activeCamera = useThree(state => state.camera);
   const scene = useThree((state) => state.scene);
 
-  // Moving to a named view keeps the current distance where the user put it —
-  // only the angle changes, which is what makes switching views feel like
-  // turning a turntable rather than a jump cut.
-  React.useEffect(() => {
-    const controls = controlsRef.current;
-    const preset = getCameraView(view);
-    if (!controls || !preset.position) return;
-
-    const camera = controls.object as THREE.PerspectiveCamera;
-    const target = new THREE.Vector3(...preset.target);
-    const distance = camera.position.distanceTo(controls.target);
-
-    const direction = new THREE.Vector3(...preset.position).sub(target);
-    const presetDistance = direction.length() || 1;
-    direction.divideScalar(presetDistance);
-
-    controls.target.copy(target);
-    camera.position.copy(target).addScaledVector(direction, distance || presetDistance);
-    controls.update();
-  }, [view]);
-
-  React.useEffect(() => {
-    if (resetToken === 0) return;
+  // Restoring a document is an exact pose, not just a direction preset.
+  React.useLayoutEffect(() => {
     const controls = controlsRef.current;
     if (!controls) return;
-
-    controls.object.position.set(...DEFAULT_POSITION);
-    controls.target.set(...DEFAULT_VIEW.target);
+    const camera = controls.object as THREE.PerspectiveCamera;
+    if (applied.current.restore !== restoreToken || applied.current.camera !== camera) {
+      const pose = useEditorStore.getState().cameraPose;
+      camera.position.set(...pose.position);
+      controls.target.set(...pose.target);
+    } else if (applied.current.reset !== resetToken) {
+      camera.position.set(...DEFAULT_POSITION);
+      controls.target.set(...DEFAULT_VIEW.target);
+    } else {
+      const preset = getCameraView(view);
+      if (!preset.position) return;
+      const distance = camera.position.distanceTo(controls.target);
+      const target = new THREE.Vector3(...preset.target);
+      const direction = new THREE.Vector3(...preset.position).sub(target).normalize();
+      controls.target.copy(target);
+      camera.position.copy(target).addScaledVector(direction, distance || 7.6);
+    }
+    applied.current = { restore: restoreToken, reset: resetToken, camera };
+    camera.lookAt(controls.target);
     controls.update();
-  }, [resetToken]);
+  }, [view, resetToken, restoreToken, activeCamera]);
 
   // Frame the visible layers: keep the current viewing direction, but dolly so
   // the whole device fits with a comfortable margin.
@@ -187,6 +187,7 @@ function CameraRig({ fov }: { fov: number }) {
         far={100}
       />
       <OrbitControls
+        key={`${restoreToken}:${resetToken}`}
         ref={controlsRef}
         enabled={orbitEnabled}
         enablePan
@@ -199,6 +200,14 @@ function CameraRig({ fov }: { fov: number }) {
         maxDistance={24}
         target={DEFAULT_VIEW.target}
         onStart={handleOrbitStart}
+        onChange={() => {
+          const controls = controlsRef.current;
+          if (!controls || applied.current.camera !== controls.object) return;
+          useEditorStore.getState().recordCameraPose({
+            position: controls.object.position.toArray() as [number, number, number],
+            target: controls.target.toArray() as [number, number, number],
+          });
+        }}
         makeDefault
       />
     </>

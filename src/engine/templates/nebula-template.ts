@@ -25,7 +25,7 @@ function label(name: string, content: string, x: number, y: number, width: numbe
 export const NEBULA_TEMPLATE: ProjectTemplate = {
   id: "nebula-music-experience", name: "Nebula Music Experience",
   description: "Editorial music-app showcase with bold typography and cinematic device presentation.",
-  category: "editorial", canvas: { width: 1080, height: 1350, fps: 60, duration: 6 },
+  category: "mobile", canvas: { width: 1080, height: 1350, fps: 60, duration: 6 },
   deviceId: "iphone-17-pro", finish: "black", cameraView: "front", posterTime: 3,
   motionPresetIds: [], tags: ["music", "editorial", "cinematic", "portrait"],
   background: { type: "pattern", patternId: null, name: "Nebula / molten orange", opacity: 1,
