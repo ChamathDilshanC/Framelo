@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#f05d25"/>
+      <stop offset=".5" stop-color="#ff9b32"/>
+      <stop offset="1" stop-color="#ffd070"/>
+    </linearGradient>
+    <radialGradient id="orb" cx=".7" cy=".35" r=".7">
+      <stop stop-color="#fff0b3" stop-opacity=".9"/>
+      <stop offset=".5" stop-color="#f47d28" stop-opacity=".2"/>
+      <stop offset="1" stop-color="#f47d28" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1440" height="900" fill="url(#bg)"/>
+  <circle cx="1090" cy="280" r="430" fill="url(#orb)"/>
+  <g fill="none" stroke="#fff3d2" stroke-opacity=".42">
+    <path d="M760 720C850 430 1090 210 1375 170" stroke-width="2"/>
+    <path d="M650 780C800 490 1030 350 1320 320" stroke-width="1"/>
+    <circle cx="1080" cy="315" r="150" stroke-width="2"/>
+    <circle cx="1080" cy="315" r="205" stroke-width="1"/>
+  </g>
+  <text x="64" y="68" fill="#fff8e8" font-family="Arial,Helvetica,sans-serif" font-size="26" font-weight="700" letter-spacing="3">FRM / BOLD STUDIO</text>
+  <text x="1030" y="64" fill="#fff8e8" font-family="Arial,Helvetica,sans-serif" font-size="15" letter-spacing="1">WORK / STUDIO / 2026</text>
+  <path d="M64 112H1376" stroke="#fff3d2" stroke-opacity=".5"/>
+  <text x="64" y="306" fill="#fffdf7" font-family="Arial,Helvetica,sans-serif" font-size="108" font-weight="500">Make it</text>
+  <text x="64" y="420" fill="#fffdf7" font-family="Arial,Helvetica,sans-serif" font-size="108" font-weight="500">unmistakable.</text>
+  <text x="68" y="478" fill="#fff4d7" font-family="Arial,Helvetica,sans-serif" font-size="24">A considered digital presence for ideas with momentum.</text>
+  <rect x="68" y="540" width="206" height="52" fill="#201812"/>
+  <text x="88" y="573" fill="#fff7e9" font-family="Arial,Helvetica,sans-serif" font-size="15" font-weight="700">EXPLORE THE WORK ↗</text>
+  <g transform="translate(1085 405)">
+    <circle r="86" fill="#21170f" fill-opacity=".82"/>
+    <circle r="58" fill="none" stroke="#ffe2a3" stroke-width="2"/>
+    <path d="M-42 0H42M0-42V42" stroke="#ffe2a3" stroke-opacity=".7"/>
+    <circle r="9" fill="#fff0ad"/>
+  </g>
+  <path d="M68 720H1376" stroke="#fff3d2" stroke-opacity=".5"/>
+  <text x="68" y="780" fill="#fff5dc" font-family="Arial,Helvetica,sans-serif" font-size="18" letter-spacing="2">IDENTITY / DIGITAL / MOTION</text>
+  <text x="68" y="830" fill="#fff5dc" fill-opacity=".7" font-family="Arial,Helvetica,sans-serif" font-size="15">FRAMELO / AN ORIGINAL SCREEN STUDY</text>
+</svg>

@@ -36,6 +36,7 @@ export interface DeviceLayerMetadata {
     | "crimson-editorial"
     | "neon-portfolio"
     | "midnight-sales"
+    | "bold-studio"
     | "floating-commerce"
     | "amber-agency"
     | "amber-tablet"

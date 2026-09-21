@@ -10,6 +10,6 @@ export function templateScreenUrl(artwork: unknown): string | null {
 }
 
 const PREMIUM_ARTWORK = new Set([
-  "crimson-editorial", "neon-portfolio", "midnight-sales", "floating-commerce",
+  "crimson-editorial", "neon-portfolio", "midnight-sales", "bold-studio", "floating-commerce",
   "amber-agency", "amber-tablet", "lime-campaign", "amber-mobile", "lime-mobile",
 ]);

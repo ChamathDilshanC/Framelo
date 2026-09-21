@@ -149,6 +149,23 @@ export const STUDIO_TEMPLATES: ProjectTemplate[] = [
       panel('UI / Checkout card', 'commerce-checkout', 195, 856, 239, 166, 0.4, 1.86, -17, 7)],
   },
   {
+    ...base, id: 'bold-studio-laptop', name: 'Bold Studio Laptop', category: 'laptop', deviceId: 'macbook',
+    description: 'A charcoal agency poster with oversized editorial type, an amber screen and a dramatically angled MacBook hero.',
+    tags: ['MacBook', 'charcoal', 'amber', 'editorial', 'agency', 'bold', 'cinematic'],
+    deviceLayers: [device('Laptop / Hero', 'macbook', 'bold-studio', 665, 875, 0, 910, 14, -22, 5, 0.62)],
+    textLayers: [
+      ...masthead('05', 'BOLD STUDIO', orange),
+      copy('Headline', 'OUR BOLDEST\nCREATIONS', 68, 188, 946, 102, white, 0.28, { weight: 700 }),
+      copy('Deck', 'Digital experiences with a point of view.', 73, 470, 790, 20, muted, 0.78),
+      copy('Project note', 'STRATEGY\nDESIGN\nMOTION\n\n01 — 05', 74, 1032, 225, 11, orange, 1.55, { mono: true }),
+      ...footer('05', 'MAKE THE WORK UNMISSABLE', orange),
+    ],
+    imageLayers: [
+      ...atmosphere('orange', 'light-streak'),
+      panel('UI / Editorial signal', 'bold-studio-glow', 795, 690, 330, 290, 0.4, 1.18, -14, 5, 0.28),
+    ],
+  },
+  {
     ...base, canvas: { ...base.canvas, duration: 8 }, id: 'amber-agency-ecosystem', name: 'Amber Agency Ecosystem', category: 'multi-device', deviceId: 'macbook',
     description: 'A three-screen agency launch framed by amber architectural lines, staggered depth and oversized editorial type.',
     tags: ['MacBook', 'iPad', 'iPhone', 'amber', 'orange', 'agency', 'ecosystem'],

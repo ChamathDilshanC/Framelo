@@ -8,11 +8,11 @@ import { TRANSFORM_PROPERTIES } from '@/types/animation';
 import { templateScreenUrl } from './screen-artwork';
 
 describe('premium device scene acceptance', () => {
-  it('contains exactly two scenes per requested category', () => {
-    for (const category of ['tablet', 'laptop', 'multi-device'] as const) {
-      expect(searchProjectTemplates(category, '')).toHaveLength(2);
-    }
-    expect(STUDIO_TEMPLATES).toHaveLength(6);
+  it('contains the expected scenes per requested category', () => {
+    expect(searchProjectTemplates('tablet', '')).toHaveLength(2);
+    expect(searchProjectTemplates('laptop', '')).toHaveLength(3);
+    expect(searchProjectTemplates('multi-device', '')).toHaveLength(2);
+    expect(STUDIO_TEMPLATES).toHaveLength(7);
   });
 
   it.each(STUDIO_TEMPLATES)('$name has portable artwork and meaningful, staggered motion', template => {
