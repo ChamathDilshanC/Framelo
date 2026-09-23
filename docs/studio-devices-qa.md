@@ -1,6 +1,7 @@
 # Studio devices and readiness
 
 - `ipad` and `macbook` are original, stylized, editable GLBs. Regenerate with `node scripts/generate-studio-devices.mjs`. The generator shares repeated keyboard geometry; no external model downloads are required.
+- `iphone-13-pro` uses the editable procedural phone renderer with a notch, while `macbook-pro-m4` reuses the original unbranded studio laptop geometry with its own display definition.
 - Both use a dedicated `Screen` mesh / `Display` material, top-left UVs, existing screen fit/filter uniforms, and the standard layer transform and animation path.
 - Templates use the existing live 3D preview cards. `TemplateDeviceSpec.deviceId` is optional so older phone-only templates retain their existing behavior.
 - A model is hidden until its screen has decoded, its finish is applied and shaders have compiled. The parent frame loop applies its animated transform before the 240 ms reveal. Downloads no longer show a temporary phone that swaps to a different model.

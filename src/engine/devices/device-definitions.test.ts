@@ -5,6 +5,7 @@ import {
   DEVICE_FINISHES,
   DEFAULT_FINISH_ID,
   getFinish,
+  ADDITIONAL_DEVICES,
   MODELLED_DEVICES,
 } from "@/engine/devices/device-definitions";
 import {
@@ -33,14 +34,36 @@ describe("device registry", () => {
     expect(getDevice("nope-not-a-device").id).toBe(DEFAULT_DEVICE_ID);
   });
 
-  it("ships phones, a tablet and a laptop", () => {
+  it("ships phones, a tablet and laptops", () => {
     expect(getAvailableDevices().map((device) => device.id)).toEqual([
       "iphone-15-pro-max",
       "iphone-17-pro-max",
       "iphone-17-pro",
       "ipad",
       "macbook",
+      "iphone-13-pro",
+      "macbook-pro-m4",
     ]);
+  });
+});
+
+describe("additional device definitions", () => {
+  it("includes the iPhone 13 Pro procedural fallback", () => {
+    const device = ADDITIONAL_DEVICES.find((entry) => entry.id === "iphone-13-pro");
+    expect(device).toMatchObject({
+      name: "iPhone 13 Pro",
+      category: "phone",
+      available: true,
+      screenAspect: 1170 / 2532,
+    });
+    expect(device?.model).toBeUndefined();
+    expect(device?.features?.notch).toBe(true);
+  });
+
+  it("configures the MacBook Pro M4 with the studio model", () => {
+    const device = ADDITIONAL_DEVICES.find((entry) => entry.id === "macbook-pro-m4");
+    expect(device?.model?.path).toBe("/devices/macbook.glb");
+    expect(device?.model?.screenPixels).toEqual([3456, 2234]);
   });
 });
 

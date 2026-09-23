@@ -41,6 +41,7 @@ function fallbackBody(width: number, height: number) {
 }
 
 const IPHONE_15_PRO_MAX_FALLBACK = fallbackBody(1.48, 3.02);
+const IPHONE_13_PRO_FALLBACK = fallbackBody(1.42, 3.02);
 const IPHONE_17_PRO_MAX_FALLBACK = fallbackBody(1.5, 3.02);
 const IPHONE_17_PRO_FALLBACK = fallbackBody(1.45, 3.02);
 
@@ -115,6 +116,24 @@ export const IPHONE_15_PRO_MAX: DeviceDefinition = {
         polygonOffsetUnits: -12,
       },
     },
+  },
+};
+
+export const IPHONE_13_PRO: DeviceDefinition = {
+  id: "iphone-13-pro",
+  name: "iPhone 13 Pro",
+  category: "phone",
+  description: '6.1" stainless steel phone with a classic notch.',
+  ratioLabel: "19.5 : 9",
+  available: true,
+  ...IPHONE_13_PRO_FALLBACK,
+  screenAspect: 1170 / 2532,
+  defaultCamera: { position: [0, 0.1, 7.6], target: [0, 0, 0], fov: 32 },
+  features: {
+    notch: true,
+    homeIndicator: true,
+    sideButtons: true,
+    cameraBump: true,
   },
 };
 
@@ -248,6 +267,17 @@ export const MACBOOK: DeviceDefinition = {
     roles: { Bezel: "glass", Keyboard: "sensor", Lens: "lens", Legend: "sensor" } },
 };
 
+export const MACBOOK_PRO_M4: DeviceDefinition = {
+  id: "macbook-pro-m4", name: "MacBook Pro M4", category: "laptop", available: true,
+  description: "Open aluminium MacBook Pro with an editable Liquid Retina display.", ratioLabel: "16 : 10",
+  body: { width: 4.4, height: 3, depth: 2.8, cornerRadius: 0.06, bezel: 0.1 },
+  screen: { width: 4.12, height: 2.575, cornerRadius: 0.03, position: [0, 0, 0.054], rotation: [0, 0, 0] },
+  screenAspect: 16 / 10, defaultCamera: { position: [0, 0.1, 7.6], target: [0, 0, 0], fov: 32 },
+  model: { path: "/devices/macbook.glb", screenMeshNames: ["Screen"], screenMaterialNames: ["Display"],
+    rotation: [0, 0, 0], normalizeHeight: 3, screenPixels: [3456, 2234],
+    roles: { Bezel: "glass", Keyboard: "sensor", Lens: "lens", Legend: "sensor" } },
+};
+
 /** Devices that ship with a photorealistic GLB, in library order. */
 export const MODELLED_DEVICES: DeviceDefinition[] = [
   IPHONE_15_PRO_MAX,
@@ -255,6 +285,12 @@ export const MODELLED_DEVICES: DeviceDefinition[] = [
   IPHONE_17_PRO,
   IPAD,
   MACBOOK,
+];
+
+/** Additional device definitions that use the procedural renderer or shared studio geometry. */
+export const ADDITIONAL_DEVICES: DeviceDefinition[] = [
+  IPHONE_13_PRO,
+  MACBOOK_PRO_M4,
 ];
 
 /**

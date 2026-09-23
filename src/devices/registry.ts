@@ -1,4 +1,4 @@
-import { MODELLED_DEVICES } from "@/engine/devices/device-definitions";
+import { ADDITIONAL_DEVICES, MODELLED_DEVICES } from "@/engine/devices/device-definitions";
 import type { DeviceDefinition } from "@/types/device";
 
 /**
@@ -7,6 +7,7 @@ import type { DeviceDefinition } from "@/types/device";
  */
 const DEVICE_LIST: DeviceDefinition[] = [
   ...MODELLED_DEVICES,
+  ...ADDITIONAL_DEVICES,
   {
     id: "browser",
     name: "Browser",
