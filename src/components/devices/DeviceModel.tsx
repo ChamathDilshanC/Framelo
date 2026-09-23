@@ -38,6 +38,8 @@ interface DeviceModelProps {
   onMediaError: (message: string | null) => void;
 }
 
+const DEVICE_MODEL_LOAD_TIMEOUT_MS = 15000;
+
 /**
  * One instance of a photorealistic device model.
  *
@@ -78,7 +80,7 @@ export const DeviceModel = React.memo(function DeviceModel({
     setPrepared(null);
     onStatusChange("loading", null);
 
-    loadDeviceModel(device)
+    loadDeviceModelWithTimeout(device)
       .then((model) => {
         if (cancelled) {
           model.dispose();
@@ -172,3 +174,20 @@ export const DeviceModel = React.memo(function DeviceModel({
 
   return <primitive object={prepared.root} />;
 });
+
+async function loadDeviceModelWithTimeout(
+  device: DeviceDefinition,
+): Promise<PreparedDeviceModel> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(`${device.name} took too long to load`));
+    }, DEVICE_MODEL_LOAD_TIMEOUT_MS);
+  });
+
+  try {
+    return await Promise.race([loadDeviceModel(device), timeout]);
+  } finally {
+    if (timeoutId !== undefined) clearTimeout(timeoutId);
+  }
+}
