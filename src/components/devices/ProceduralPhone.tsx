@@ -50,11 +50,11 @@ export const ProceduralPhone = React.memo(function ProceduralPhone({
       >
         <meshPhysicalMaterial
           color={bodyColor}
-          metalness={0.92}
-          roughness={0.32}
-          clearcoat={0.5}
-          clearcoatRoughness={0.25}
-          envMapIntensity={1.1}
+          metalness={0.78}
+          roughness={0.46}
+          clearcoat={0.3}
+          clearcoatRoughness={0.34}
+          envMapIntensity={0.72}
         />
       </RoundedBox>
 
@@ -68,9 +68,9 @@ export const ProceduralPhone = React.memo(function ProceduralPhone({
       >
         <meshPhysicalMaterial
           color={bodyColor}
-          metalness={1}
-          roughness={0.14}
-          envMapIntensity={1.6}
+          metalness={0.88}
+          roughness={0.28}
+          envMapIntensity={0.92}
         />
       </RoundedBox>
 
@@ -134,13 +134,13 @@ function SideButtons({ device, bodyColor }: { device: DeviceDefinition; bodyColo
       {[0.72, 0.44, 1.02].map((y, index) => (
         <mesh key={y} position={[-x - 0.004, y, 0]} castShadow>
           <boxGeometry args={[0.012, index === 2 ? 0.12 : 0.2, depth]} />
-          <meshPhysicalMaterial color={bodyColor} metalness={1} roughness={0.2} />
+          <meshPhysicalMaterial color={bodyColor} metalness={0.88} roughness={0.32} />
         </mesh>
       ))}
       {/* Power button on the right rail */}
       <mesh position={[x + 0.004, 0.6, 0]} castShadow>
         <boxGeometry args={[0.012, 0.34, depth]} />
-        <meshPhysicalMaterial color={bodyColor} metalness={1} roughness={0.2} />
+        <meshPhysicalMaterial color={bodyColor} metalness={0.88} roughness={0.32} />
       </mesh>
     </group>
   );
@@ -164,9 +164,9 @@ function CameraBump({ device, bodyColor }: { device: DeviceDefinition; bodyColor
       <RoundedBox args={[plateSize, plateSize, 0.05]} radius={0.07} smoothness={4} castShadow>
         <meshPhysicalMaterial
           color={bodyColor}
-          metalness={0.9}
-          roughness={0.38}
-          envMapIntensity={1.2}
+          metalness={0.82}
+          roughness={0.44}
+          envMapIntensity={0.82}
         />
       </RoundedBox>
       {lensPositions.map(([lx, ly]) => (
