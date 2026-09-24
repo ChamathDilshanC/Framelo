@@ -22,6 +22,8 @@ export function computeScreenLayout(
   screenWidth: number,
   screenHeight: number,
   imageAspect: number | undefined,
+  cropX = 0,
+  cropY = 0,
 ): ScreenLayout {
   const base: ScreenLayout = {
     planeWidth: screenWidth,
@@ -40,10 +42,22 @@ export function computeScreenLayout(
   if (fit === "cover") {
     if (ratio > 1) {
       // Image is wider than the screen: crop the sides.
-      return { ...base, repeat: [1 / ratio, 1], offset: [(1 - 1 / ratio) / 2, 0] };
+      return {
+        ...base,
+        repeat: [1 / ratio, 1],
+        offset: [((1 - 1 / ratio) / 2) - clampCrop(cropX) * (1 - 1 / ratio) / 2, 0],
+      };
     }
     // Image is taller: crop top and bottom.
-    return { ...base, repeat: [1, ratio], offset: [0, (1 - ratio) / 2] };
+    return {
+      ...base,
+      repeat: [1, ratio],
+      offset: [0, ((1 - ratio) / 2) - clampCrop(cropY) * (1 - ratio) / 2],
+    };
+  }
+
+  function clampCrop(value: number): number {
+    return Number.isFinite(value) ? Math.max(-1, Math.min(1, value)) : 0;
   }
 
   // contain

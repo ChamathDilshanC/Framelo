@@ -30,6 +30,7 @@ export interface ScreenUniforms {
   uBrightness: THREE.IUniform<number>;
   uContrast: THREE.IUniform<number>;
   uSaturation: THREE.IUniform<number>;
+  uCrop: THREE.IUniform<THREE.Vector2>;
   /** Border thickness in canvas-space UV units, per axis. */
   uInset: THREE.IUniform<THREE.Vector2>;
   /** Corner radius of the inset border, in canvas-space UV units, per axis. */
@@ -49,6 +50,8 @@ export interface ScreenAppearance {
   brightness: number;
   contrast: number;
   saturation: number;
+  cropX?: number;
+  cropY?: number;
   /** Aspect of the currently assigned image, or undefined while none is set. */
   imageAspect: number | undefined;
 }
@@ -60,6 +63,7 @@ uniform float uCanvasAspect;
 uniform float uBrightness;
 uniform float uContrast;
 uniform float uSaturation;
+uniform vec2  uCrop;
 uniform vec2  uInset;
 uniform vec2  uInsetRadius;
 uniform float uHasImage;
@@ -119,6 +123,7 @@ if (uHasImage > 0.5 &&
     }
 
     vec2 fl_imageUv = (fl_inner - 0.5) * fl_scale + 0.5;
+    fl_imageUv -= uCrop * (vec2(1.0) - fl_scale) * 0.5;
 
     // "contain" samples beyond the image; those pixels are the letterbox.
     if (fl_imageUv.x >= 0.0 && fl_imageUv.x <= 1.0 &&
@@ -169,6 +174,7 @@ export function createScreenMaterial(model: DeviceModelConfig): ScreenSurface {
     uBrightness: { value: 1 },
     uContrast: { value: 1 },
     uSaturation: { value: 1 },
+    uCrop: { value: new THREE.Vector2() },
     uInset: { value: inset },
     uInsetRadius: { value: insetRadius },
     uHasImage: { value: 0 },
@@ -291,6 +297,10 @@ export function applyScreenAppearance(
   uniforms.uBrightness.value = clampFilter(appearance.brightness, 0, 3);
   uniforms.uContrast.value = clampFilter(appearance.contrast, 0, 3);
   uniforms.uSaturation.value = clampFilter(appearance.saturation, 0, 3);
+  uniforms.uCrop.value.set(
+    clampFilter(appearance.cropX, -1, 1),
+    clampFilter(appearance.cropY, -1, 1),
+  );
   uniforms.uImageAspect.value = appearance.imageAspect ?? surface.canvasAspect;
 }
 

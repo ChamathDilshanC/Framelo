@@ -96,6 +96,9 @@ export function ScreenPanel({ layer }: { layer: Layer }) {
           options={FIT_OPTIONS}
         />
       </PanelRow>
+      <p className="text-[10px] text-ink-subtle">
+        With Cover selected, hold and drag the image on the device to reposition the crop.
+      </p>
 
       {screenAsset?.type === "video" ? <div className="space-y-1.5 border-t border-line pt-2">
         <span className="panel-label">Video</span>

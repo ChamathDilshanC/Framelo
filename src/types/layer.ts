@@ -46,6 +46,9 @@ export interface DeviceLayerMetadata {
     | "lime-mobile"
     | "emerald";
   screenFit: ScreenFit;
+  /** Normalized image position inside a cropped screen. */
+  screenCropX: number;
+  screenCropY: number;
   videoLoop?: boolean;
   videoMuted?: boolean;
   /**

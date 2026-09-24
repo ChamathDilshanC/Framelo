@@ -17,6 +17,8 @@ export const DEFAULT_DEVICE_METADATA: DeviceLayerMetadata = {
   deviceId: DEFAULT_DEVICE_ID,
   screenAssetId: null,
   screenFit: "cover",
+  screenCropX: 0,
+  screenCropY: 0,
   screenBrightness: 1,
   screenContrast: 1,
   screenSaturation: 1,

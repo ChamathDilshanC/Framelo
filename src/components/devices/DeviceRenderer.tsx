@@ -2,7 +2,7 @@
 
 import { useFrame } from "@react-three/fiber";
 import * as React from "react";
-import type * as THREE from "three";
+import * as THREE from "three";
 
 import { templateScreenUrl } from "@/engine/templates/screen-artwork";
 import { DeviceModel } from "@/components/devices/DeviceModel";
@@ -13,6 +13,7 @@ import { presetPreview } from "@/engine/motion/preset-preview";
 import { getDevice } from "@/devices/registry";
 import { degToRad } from "@/lib/utils";
 import { useEditorStore } from "@/store/editor-store";
+import { useProjectStore } from "@/store/project-store";
 import {
   DEFAULT_DEVICE_APPEARANCE,
   type DeviceAppearance,
@@ -66,6 +67,8 @@ export const DeviceRenderer = React.memo(function DeviceRenderer({
   getTime,
 }: DeviceRendererProps) {
   const groupRef = React.useRef<THREE.Group>(null);
+  const cropDrag = React.useRef<{ point: THREE.Vector3; x: number; y: number } | null>(null);
+  const cropDragged = React.useRef(false);
 
   const metadata = (layer.metadata ?? {}) as Partial<DeviceLayerMetadata>;
   const device = getDevice(metadata.deviceId ?? "");
@@ -134,12 +137,16 @@ export const DeviceRenderer = React.memo(function DeviceRenderer({
       brightness: metadata.screenBrightness ?? 1,
       contrast: metadata.screenContrast ?? 1,
       saturation: metadata.screenSaturation ?? 1,
+      cropX: metadata.screenCropX ?? 0,
+      cropY: metadata.screenCropY ?? 0,
     }),
     [
       metadata.screenFit,
       metadata.screenBrightness,
       metadata.screenContrast,
       metadata.screenSaturation,
+      metadata.screenCropX,
+      metadata.screenCropY,
     ],
   );
 
@@ -205,12 +212,48 @@ export const DeviceRenderer = React.memo(function DeviceRenderer({
       onClick={(event) => {
         if (getTime) return;
         event.stopPropagation();
+        if (cropDragged.current) {
+          cropDragged.current = false;
+          return;
+        }
         useEditorStore.getState().selectLayer(layer.id);
       }}
       onPointerOver={(event) => { event.stopPropagation(); onDropTargetChange?.(layer.id); }}
       onPointerOut={() => onDropTargetChange?.(null)}>
 
-      {!getTime ? <mesh name="phone-hit-area" position={[0, 0, 0.02]}>
+      {!getTime ? <mesh name="phone-hit-area" position={[0, 0, 0.02]}
+        onPointerDown={(event) => {
+          if (layer.locked || mediaType === "video") return;
+          event.stopPropagation();
+          const point = event.point.clone();
+          groupRef.current?.worldToLocal(point);
+          cropDrag.current = {
+            point,
+            x: screenAppearance.cropX,
+            y: screenAppearance.cropY,
+          };
+          cropDragged.current = false;
+        }}
+        onPointerMove={(event) => {
+          const drag = cropDrag.current;
+          const group = groupRef.current;
+          if (!drag || !group || event.buttons !== 1) return;
+          event.stopPropagation();
+          const point = event.point.clone();
+          group.worldToLocal(point);
+          const dx = point.x - drag.point.x;
+          const dy = point.y - drag.point.y;
+          if (Math.abs(dx) + Math.abs(dy) < 0.01) return;
+          cropDragged.current = true;
+          useProjectStore.getState().updateDeviceMetadata(layer.id, {
+            screenCropX: clampCrop(drag.x + dx / Math.max(0.01, device.screen.width)),
+            screenCropY: clampCrop(drag.y - dy / Math.max(0.01, device.screen.height)),
+          });
+        }}
+        onPointerUp={(event) => {
+          event.stopPropagation();
+          cropDrag.current = null;
+        }}>
         <planeGeometry args={[device.body.width, device.body.height]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} side={2} />
       </mesh> : null}
@@ -242,6 +285,8 @@ export const DeviceRenderer = React.memo(function DeviceRenderer({
           videoLoop={metadata.videoLoop}
           videoMuted={metadata.videoMuted}
           fit={screenAppearance.fit}
+          cropX={screenAppearance.cropX}
+          cropY={screenAppearance.cropY}
           brightness={screenAppearance.brightness}
           bodyColor={fallbackBodyColor(deviceAppearance)}
           onScreenStatusChange={handleFallbackScreenStatus}
@@ -258,6 +303,10 @@ export const DeviceRenderer = React.memo(function DeviceRenderer({
 function fallbackBodyColor(appearance: DeviceAppearance): string {
   if (appearance.finish === "custom" && appearance.bodyColor) return appearance.bodyColor;
   return FALLBACK_FINISH_COLORS[appearance.finish] ?? "#1c1d21";
+}
+
+function clampCrop(value: number): number {
+  return Math.max(-1, Math.min(1, Number.isFinite(value) ? value : 0));
 }
 
 const FALLBACK_FINISH_COLORS: Record<string, string> = {

@@ -23,6 +23,8 @@ interface DeviceScreenProps {
   videoLoop?: boolean;
   videoMuted?: boolean;
   fit: ScreenFit;
+  cropX?: number;
+  cropY?: number;
   brightness: number;
   onStatusChange?: (status: "idle" | "loading" | "ready" | "error", error: string | null) => void;
 }
@@ -44,6 +46,8 @@ export const DeviceScreen = React.memo(function DeviceScreen({
   videoLoop,
   videoMuted,
   fit,
+  cropX = 0,
+  cropY = 0,
   brightness,
   onStatusChange,
 }: DeviceScreenProps) {
@@ -64,8 +68,8 @@ export const DeviceScreen = React.memo(function DeviceScreen({
   const activeFit: ScreenFit = texture ? fit : "cover";
 
   const layout = React.useMemo(
-    () => computeScreenLayout(activeFit, screen.width, screen.height, activeAspect),
-    [activeFit, screen.width, screen.height, activeAspect],
+    () => computeScreenLayout(activeFit, screen.width, screen.height, activeAspect, cropX, cropY),
+    [activeFit, screen.width, screen.height, activeAspect, cropX, cropY],
   );
 
   const backingGeometry = React.useMemo(

@@ -218,6 +218,8 @@ export function migrateProject(project: ParsedProject): Project | null {
 
     metadata.screenContrast ??= 1;
     metadata.screenSaturation ??= 1;
+    metadata.screenCropX ??= 0;
+    metadata.screenCropY ??= 0;
 
     // v2: `bodyFinish` + `bodyColor` became a single appearance object.
     if (!metadata.deviceAppearance) {

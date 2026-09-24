@@ -26,6 +26,12 @@ describe("computeScreenLayout", () => {
     expect(layout.offset[0]).toBeCloseTo((1 - layout.repeat[0]) / 2, 6);
   });
 
+  it("moves a cover crop with the requested image position", () => {
+    const centered = computeScreenLayout("cover", SCREEN_W, SCREEN_H, 1.78, 0, 0);
+    const right = computeScreenLayout("cover", SCREEN_W, SCREEN_H, 1.78, 1, 0);
+    expect(right.offset[0]).toBeLessThan(centered.offset[0]);
+  });
+
   it("crops top and bottom for an extra-tall image in cover mode", () => {
     const layout = computeScreenLayout("cover", SCREEN_W, SCREEN_H, SCREEN_ASPECT / 2);
     expect(layout.repeat[0]).toBe(1);
