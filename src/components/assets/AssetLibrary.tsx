@@ -4,6 +4,7 @@ import { Check, Film, ImageOff, MonitorSmartphone, Trash2 } from "lucide-react";
 import * as React from "react";
 
 import { UploadDropzone } from "@/components/assets/UploadDropzone";
+import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/panel";
 import { IconButton } from "@/components/ui/icon-button";
 import { notify } from "@/lib/toast";
@@ -17,6 +18,7 @@ import type { DeviceLayerMetadata } from "@/types/layer";
 export function AssetLibrary() {
   const assets = useAssetStore((state) => state.assets);
   const removeAsset = useAssetStore((state) => state.removeAsset);
+  const removeAllAssets = useAssetStore((state) => state.removeAllAssets);
 
   const layers = useProjectStore((state) => state.project?.layers);
   const updateDeviceMetadata = useProjectStore((state) => state.updateDeviceMetadata);
@@ -50,6 +52,15 @@ export function AssetLibrary() {
     [activeAssetId, removeAsset, targetLayer, updateDeviceMetadata],
   );
 
+  const removableAssets = assets.filter((asset) => !asset.storageKey.startsWith("builtin:"));
+
+  const handleRemoveAll = React.useCallback(async () => {
+    if (targetLayer && removableAssets.some((asset) => asset.id === activeAssetId)) {
+      updateDeviceMetadata(targetLayer.id, { screenAssetId: null });
+    }
+    await removeAllAssets();
+  }, [activeAssetId, removableAssets, removeAllAssets, targetLayer, updateDeviceMetadata]);
+
   return (
     <div className="space-y-3 p-3">
       <UploadDropzone
@@ -68,7 +79,21 @@ export function AssetLibrary() {
         />
       ) : (
         <>
-          <p className="panel-label px-0.5">Library · {assets.length}</p>
+          <div className="flex items-center justify-between gap-2 px-0.5">
+            <p className="panel-label">Library · {assets.length}</p>
+            {removableAssets.length > 0 ? (
+              <Button
+                type="button"
+                variant="danger"
+                size="xs"
+                onClick={() => void handleRemoveAll()}
+                className="h-6 px-2 text-[11px]"
+              >
+                <Trash2 className="h-3 w-3" />
+                Delete all
+              </Button>
+            ) : null}
+          </div>
           <ul className="grid grid-cols-2 gap-2">
             {assets.map((asset) => (
               <AssetCard

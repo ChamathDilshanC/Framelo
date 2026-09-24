@@ -44,6 +44,8 @@ describe("device registry", () => {
       "ipad",
       "macbook",
       "macbook-neo-2026",
+      "imac-2021",
+      "samsung-galaxy-s22-ultra",
     ]);
   });
 

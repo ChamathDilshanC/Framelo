@@ -36,6 +36,7 @@ interface AssetStoreState {
   hydrate: () => Promise<void>;
   uploadFiles: (files: FileList | File[]) => Promise<ResolvedAsset[]>;
   removeAsset: (assetId: string) => Promise<void>;
+  removeAllAssets: () => Promise<void>;
   getAsset: (assetId: string | null | undefined) => ResolvedAsset | null;
 }
 
@@ -164,6 +165,29 @@ export const useAssetStore = create<AssetStoreState>((set, get) => ({
       } catch (error) {
         notify.error("Could not delete asset", toMessage(error));
       }
+    }
+  },
+
+  async removeAllAssets() {
+    const removable = get().assets.filter((asset) => !isBuiltin(asset));
+    if (removable.length === 0) return;
+
+    const previous = get().assets;
+    const next = previous.filter((asset) => isBuiltin(asset));
+    set({ assets: next });
+
+    try {
+      await Promise.all(
+        removable.map(async (asset) => {
+          await assetStorage.delete(asset.storageKey);
+          if (asset.posterStorageKey) await assetStorage.delete(asset.posterStorageKey);
+        }),
+      );
+      await persist(next);
+      notify.info("All media removed", `${removable.length} file${removable.length === 1 ? "" : "s"} deleted`);
+    } catch (error) {
+      set({ assets: previous });
+      notify.error("Could not delete media", toMessage(error));
     }
   },
 
