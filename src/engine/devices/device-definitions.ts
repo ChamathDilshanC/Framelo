@@ -364,6 +364,7 @@ export const MACBOOK_NEO: DeviceDefinition = {
     normalizeHeight: NORMALIZE_HEIGHT,
     screenPixels: [2560, 1600],
     inset: { border: 0, radius: 0 },
+    uv: { rotation: -Math.PI / 2 },
     roles: {
       "Glass_-_Heavy_Color": "screen",
       "Aluminum_-_Anodized_Rough_Grey": "body",
@@ -395,12 +396,24 @@ export const IMAC_2021: DeviceDefinition = {
   defaultCamera: { position: [0, 0.2, 7.2], target: [0, 0, 0], fov: 30 },
   model: {
     path: "/devices/imac_2021.glb",
-    screenMeshNames: ["Screen"],
+    screenMeshNames: ["Screen_Screen_0"],
     screenMaterialNames: ["Screen"],
     rotation: [0, 0, 0],
     normalizeHeight: NORMALIZE_HEIGHT,
     screenPixels: [4480, 2520],
     inset: { border: 0, radius: 0 },
+    screenDoubleSided: false,
+    uv: { rotation: Math.PI },
+    // The source model mixes dark blue, white and black body parts even
+    // though the stand is the product's defining light-blue finish.
+    tweaks: {
+      LightBlue: { color: 0xaddfff },
+      DarkBlue: { color: 0xaddfff },
+      White: { color: 0xaddfff },
+      Metal: { color: 0xaddfff },
+      Metal2: { color: 0xaddfff },
+      Chrome: { color: 0xaddfff },
+    },
     roles: {
       LightBlue: "body",
       Metal: "frame",
@@ -448,6 +461,7 @@ export const SAMSUNG_GALAXY_S22_ULTRA: DeviceDefinition = {
     rotation: [0, Math.PI, 0],
     normalizeHeight: NORMALIZE_HEIGHT,
     screenPixels: [1440, 3088],
+    uv: { rotation: Math.PI },
     inset: { border: 0, radius: 0 },
     roles: {
       Antenna_Plastic: "sensor",

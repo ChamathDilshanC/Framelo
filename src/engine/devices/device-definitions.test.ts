@@ -52,8 +52,12 @@ describe("device registry", () => {
   it("targets the actual front display materials", () => {
     const iPhone18 = MODELLED_DEVICES.find((entry) => entry.id === "iphone-18-pro-max");
     const iPhone13 = MODELLED_DEVICES.find((entry) => entry.id === "iphone-13-pro-max");
+    const iMac = MODELLED_DEVICES.find((entry) => entry.id === "imac-2021");
     expect(iPhone18?.model?.screenMaterialNames).toEqual(["Material.001"]);
     expect(iPhone13?.model?.screenMaterialNames).toEqual(["Screen_Glass"]);
+    expect(iMac?.model?.screenMeshNames).toEqual(["Screen_Screen_0"]);
+    expect(iMac?.model?.screenDoubleSided).not.toBe(true);
+    expect(iMac?.model?.tweaks?.LightBlue?.color).toBe(iMac?.model?.tweaks?.DarkBlue?.color);
   });
 });
 

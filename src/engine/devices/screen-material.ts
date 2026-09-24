@@ -185,9 +185,9 @@ export function createScreenMaterial(model: DeviceModelConfig): ScreenSurface {
     // The screenshot must survive tone mapping unchanged, or a bright UI is
     // pulled grey by the filmic curve.
     toneMapped: false,
-    // Several of these display meshes are authored double-sided; their inner
-    // face sits inside the body, so this only matches the import.
-    side: THREE.DoubleSide,
+    // A display is only visible from its front face. Rendering both sides
+    // makes the screenshot bleed through the back of desktop devices.
+    side: model.screenDoubleSided === false ? THREE.FrontSide : THREE.DoubleSide,
   });
 
   material.onBeforeCompile = (shader) => {

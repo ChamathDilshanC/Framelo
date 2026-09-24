@@ -92,6 +92,8 @@ export interface DeviceModelConfig {
   normalizeHeight: number;
   /** Native screen resolution, used for aspect and inset maths. */
   screenPixels: [number, number];
+  /** Whether the imported display should also render from its back face. */
+  screenDoubleSided?: boolean;
   uv?: ScreenUvTransform;
   inset?: ScreenInsetConfig;
   tweaks?: Record<string, MaterialTweak>;
