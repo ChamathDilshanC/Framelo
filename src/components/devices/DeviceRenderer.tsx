@@ -139,6 +139,7 @@ export const DeviceRenderer = React.memo(function DeviceRenderer({
       saturation: metadata.screenSaturation ?? 1,
       cropX: metadata.screenCropX ?? 0,
       cropY: metadata.screenCropY ?? 0,
+      zoom: metadata.screenZoom ?? 1,
     }),
     [
       metadata.screenFit,
@@ -147,6 +148,7 @@ export const DeviceRenderer = React.memo(function DeviceRenderer({
       metadata.screenSaturation,
       metadata.screenCropX,
       metadata.screenCropY,
+      metadata.screenZoom,
     ],
   );
 
@@ -287,6 +289,7 @@ export const DeviceRenderer = React.memo(function DeviceRenderer({
           fit={screenAppearance.fit}
           cropX={screenAppearance.cropX}
           cropY={screenAppearance.cropY}
+          zoom={screenAppearance.zoom}
           brightness={screenAppearance.brightness}
           bodyColor={fallbackBodyColor(deviceAppearance)}
           onScreenStatusChange={handleFallbackScreenStatus}

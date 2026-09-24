@@ -46,6 +46,10 @@ export function ScreenPanel({ layer }: { layer: Layer }) {
 
   const screenAsset = assets.find((asset) => asset.id === metadata.screenAssetId);
   const filtersAtDefault = FILTERS.every(({ key }) => (metadata[key] ?? 1) === 1);
+  const imageTransformAtDefault =
+    (metadata.screenZoom ?? 1) === 1 &&
+    (metadata.screenCropX ?? 0) === 0 &&
+    (metadata.screenCropY ?? 0) === 0;
 
   return (
     <PanelSection title="Screen media">
@@ -99,6 +103,67 @@ export function ScreenPanel({ layer }: { layer: Layer }) {
       <p className="text-[10px] text-ink-subtle">
         With Cover selected, hold and drag the image on the device to reposition the crop.
       </p>
+      <div className="space-y-2 border-t border-line pt-2">
+        <div className="flex items-center justify-between">
+          <span className="panel-label">Image position &amp; zoom</span>
+          {!imageTransformAtDefault ? (
+            <Button
+              size="xs"
+              variant="ghost"
+              onClick={() => updateDeviceMetadata(layer.id, {
+                screenZoom: 1,
+                screenCropX: 0,
+                screenCropY: 0,
+              })}
+            >
+              <RotateCcw className="h-3 w-3" /> Reset
+            </Button>
+          ) : null}
+        </div>
+        <PanelRow label="Zoom">
+          <Slider
+            aria-label="Screen image zoom"
+            value={metadata.screenZoom ?? 1}
+            onChange={(screenZoom) => updateDeviceMetadata(layer.id, { screenZoom })}
+            min={1}
+            max={3}
+            step={0.01}
+            className="flex-1"
+          />
+          <NumericField
+            label="×"
+            value={metadata.screenZoom ?? 1}
+            onChange={(screenZoom) => updateDeviceMetadata(layer.id, { screenZoom })}
+            min={1}
+            max={3}
+            step={0.01}
+            decimals={2}
+            className="w-[64px]"
+          />
+        </PanelRow>
+        <PanelRow label="Horizontal">
+          <Slider
+            aria-label="Screen image horizontal position"
+            value={metadata.screenCropX ?? 0}
+            onChange={(screenCropX) => updateDeviceMetadata(layer.id, { screenCropX })}
+            min={-1}
+            max={1}
+            step={0.01}
+            className="flex-1"
+          />
+        </PanelRow>
+        <PanelRow label="Vertical">
+          <Slider
+            aria-label="Screen image vertical position"
+            value={metadata.screenCropY ?? 0}
+            onChange={(screenCropY) => updateDeviceMetadata(layer.id, { screenCropY })}
+            min={-1}
+            max={1}
+            step={0.01}
+            className="flex-1"
+          />
+        </PanelRow>
+      </div>
 
       {screenAsset?.type === "video" ? <div className="space-y-1.5 border-t border-line pt-2">
         <span className="panel-label">Video</span>

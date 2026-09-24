@@ -49,6 +49,8 @@ export interface DeviceLayerMetadata {
   /** Normalized image position inside a cropped screen. */
   screenCropX: number;
   screenCropY: number;
+  /** Image scale inside the screen; 1 is the default framing. */
+  screenZoom: number;
   videoLoop?: boolean;
   videoMuted?: boolean;
   /**

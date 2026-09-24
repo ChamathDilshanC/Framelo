@@ -20,6 +20,7 @@ interface FallbackDeviceProps {
   fit: ScreenFit;
   cropX?: number;
   cropY?: number;
+  zoom?: number;
   brightness: number;
   bodyColor: string;
   onScreenStatusChange?: (
@@ -51,6 +52,7 @@ export const FallbackDevice = React.memo(function FallbackDevice({
   fit,
   cropX = 0,
   cropY = 0,
+  zoom = 1,
   brightness,
   bodyColor,
   onScreenStatusChange,
@@ -65,7 +67,7 @@ export const FallbackDevice = React.memo(function FallbackDevice({
         <ProceduralPhone device={display} bodyColor={bodyColor}>
           <DeviceScreen device={display} mediaUrl={mediaUrl} mediaType={mediaType}
             getTime={getTime} getPlaying={getPlaying} videoLoop={videoLoop} videoMuted={videoMuted}
-            fit={fit} cropX={cropX} cropY={cropY} brightness={brightness} onStatusChange={onScreenStatusChange} />
+            fit={fit} cropX={cropX} cropY={cropY} zoom={zoom} brightness={brightness} onStatusChange={onScreenStatusChange} />
         </ProceduralPhone>
       </group>
       <RoundedBox args={[4.4, 0.13, 2.8]} radius={0.04} position={[0, -1.45, 0]}>
@@ -90,6 +92,7 @@ export const FallbackDevice = React.memo(function FallbackDevice({
         fit={fit}
         cropX={cropX}
         cropY={cropY}
+        zoom={zoom}
         brightness={brightness}
         onStatusChange={onScreenStatusChange}
       />

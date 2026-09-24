@@ -31,6 +31,7 @@ export interface ScreenUniforms {
   uContrast: THREE.IUniform<number>;
   uSaturation: THREE.IUniform<number>;
   uCrop: THREE.IUniform<THREE.Vector2>;
+  uZoom: THREE.IUniform<number>;
   /** Border thickness in canvas-space UV units, per axis. */
   uInset: THREE.IUniform<THREE.Vector2>;
   /** Corner radius of the inset border, in canvas-space UV units, per axis. */
@@ -52,6 +53,7 @@ export interface ScreenAppearance {
   saturation: number;
   cropX?: number;
   cropY?: number;
+  zoom?: number;
   /** Aspect of the currently assigned image, or undefined while none is set. */
   imageAspect: number | undefined;
 }
@@ -64,6 +66,7 @@ uniform float uBrightness;
 uniform float uContrast;
 uniform float uSaturation;
 uniform vec2  uCrop;
+uniform float uZoom;
 uniform vec2  uInset;
 uniform vec2  uInsetRadius;
 uniform float uHasImage;
@@ -122,8 +125,9 @@ if (uHasImage > 0.5 &&
       fl_scale = fl_ratio > 1.0 ? vec2(1.0, fl_ratio) : vec2(1.0 / fl_ratio, 1.0);
     }
 
-    vec2 fl_imageUv = (fl_inner - 0.5) * fl_scale + 0.5;
-    fl_imageUv -= uCrop * (vec2(1.0) - fl_scale) * 0.5;
+    vec2 fl_sampleScale = fl_scale / max(1.0, uZoom);
+    vec2 fl_imageUv = (fl_inner - 0.5) * fl_sampleScale + 0.5;
+    fl_imageUv -= uCrop * (vec2(1.0) - fl_sampleScale) * 0.5;
 
     // "contain" samples beyond the image; those pixels are the letterbox.
     if (fl_imageUv.x >= 0.0 && fl_imageUv.x <= 1.0 &&
@@ -175,6 +179,7 @@ export function createScreenMaterial(model: DeviceModelConfig): ScreenSurface {
     uContrast: { value: 1 },
     uSaturation: { value: 1 },
     uCrop: { value: new THREE.Vector2() },
+    uZoom: { value: 1 },
     uInset: { value: inset },
     uInsetRadius: { value: insetRadius },
     uHasImage: { value: 0 },
@@ -301,6 +306,7 @@ export function applyScreenAppearance(
     clampFilter(appearance.cropX, -1, 1),
     clampFilter(appearance.cropY, -1, 1),
   );
+  uniforms.uZoom.value = clampFilter(appearance.zoom, 1, 3);
   uniforms.uImageAspect.value = appearance.imageAspect ?? surface.canvasAspect;
 }
 

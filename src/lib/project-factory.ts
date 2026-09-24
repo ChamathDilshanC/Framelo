@@ -19,6 +19,7 @@ export const DEFAULT_DEVICE_METADATA: DeviceLayerMetadata = {
   screenFit: "cover",
   screenCropX: 0,
   screenCropY: 0,
+  screenZoom: 1,
   screenBrightness: 1,
   screenContrast: 1,
   screenSaturation: 1,
