@@ -1,6 +1,6 @@
 "use client";
 
-import { FolderOpen, Plus, Settings } from "lucide-react";
+import { FolderOpen, Plus, Settings, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
@@ -70,6 +70,7 @@ export function Dashboard() {
   const [creating, setCreating] = React.useState(false);
 
   const [pendingDelete, setPendingDelete] = React.useState<ProjectSummary | null>(null);
+  const [pendingDeleteAll, setPendingDeleteAll] = React.useState(false);
   const [shareTarget, setShareTarget] = React.useState<Project | null>(null);
   const [publishTarget, setPublishTarget] = React.useState<Project | null>(null);
 
@@ -139,6 +140,27 @@ export function Dashboard() {
     void refresh();
   }
 
+  async function handleDeleteAll() {
+    const toDelete = projects;
+    setProjects([]);
+    const results = await Promise.allSettled(toDelete.map((summary) => deleteProject(summary.id)));
+    const failed = results.filter((result) => result.status === "rejected");
+
+    if (failed.length > 0) {
+      notify.error(
+        "Some projects could not be deleted",
+        `${failed.length} project${failed.length === 1 ? "" : "s"} could not be removed.`,
+      );
+    } else {
+      notify.info(
+        "Projects deleted",
+        `${toDelete.length} project${toDelete.length === 1 ? "" : "s"} removed`,
+      );
+    }
+
+    void refresh();
+  }
+
   const existingNames = React.useMemo(() => projects.map((entry) => entry.name), [projects]);
 
   return (
@@ -158,10 +180,23 @@ export function Dashboard() {
               {authStatus === "guest" ? " · stored on this device" : ""}
             </p>
           </div>
-          <Button variant="primary" size="sm" onClick={() => setCreating(true)}>
-            <Plus className="h-3.5 w-3.5" />
-            New project
-          </Button>
+          <div className="flex items-center gap-2">
+            {projects.length > 0 ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-ink-subtle hover:text-danger"
+                onClick={() => setPendingDeleteAll(true)}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete all
+              </Button>
+            ) : null}
+            <Button variant="primary" size="sm" onClick={() => setCreating(true)}>
+              <Plus className="h-3.5 w-3.5" />
+              New project
+            </Button>
+          </div>
         </div>
 
         {loading && projects.length === 0 ? (
@@ -215,6 +250,15 @@ export function Dashboard() {
         onConfirm={async () => {
           if (pendingDelete) await handleDelete(pendingDelete);
         }}
+      />
+
+      <ConfirmDialog
+        open={pendingDeleteAll}
+        onOpenChange={setPendingDeleteAll}
+        title="Delete all projects?"
+        description={`All ${projects.length} projects and their animations will be removed. This action cannot be undone.`}
+        confirmLabel="Delete all projects"
+        onConfirm={handleDeleteAll}
       />
 
       <ShareDialog

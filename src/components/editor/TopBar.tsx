@@ -59,7 +59,7 @@ export function TopBar() {
       <div className="flex min-w-0 flex-1 items-center gap-3">
         <Tooltip label="Back to projects">
           <Link
-            href="/"
+            href="/dashboard"
             className="flex h-7 w-7 items-center justify-center rounded-sm text-ink-subtle transition-colors hover:bg-surface-hover hover:text-ink"
             aria-label="Back to projects"
           >
