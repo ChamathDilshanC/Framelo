@@ -65,7 +65,7 @@ export function EditorCanvas({ canvas, background, layers }: EditorCanvasProps) 
         className="relative flex min-h-0 flex-1 items-center justify-center p-6 lg:p-10"
       >
         <div
-          className="relative overflow-hidden rounded-md border border-line shadow-2xl shadow-black/50"
+          className="relative overflow-hidden rounded-md"
           style={{ width: frame.width, height: frame.height }}
           onDragOver={(event) => {
             if (!Array.from(event.dataTransfer.types).includes("application/x-framelo-screen-asset")) return;

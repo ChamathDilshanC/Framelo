@@ -2,11 +2,7 @@
 
 import * as React from "react";
 
-import { createProject } from "@/lib/project-factory";
-import {
-  loadProject as fetchProject,
-  saveProject,
-} from "@/lib/projects/project-service";
+import { loadProject as fetchProject } from "@/lib/projects/project-service";
 import { saveProjectNow } from "./use-autosave";
 import { useAssetStore } from "@/store/asset-store";
 import { useEditorStore } from "@/store/editor-store";
@@ -22,8 +18,9 @@ interface ProjectLoaderResult {
 /**
  * Resolves the project for `/editor/[projectId]`.
  *
- * An unknown id creates a fresh project under that id so a shared or bookmarked
- * URL always opens something usable instead of a dead end.
+ * An unknown id is treated as an error. Creating a project belongs to the
+ * dashboard flow; silently creating one here can produce a second blank project
+ * when navigation races the initial save.
  */
 export function useProjectLoader(projectId: string): ProjectLoaderResult {
   const [state, setState] = React.useState<ProjectLoadState>("loading");
@@ -47,19 +44,12 @@ export function useProjectLoader(projectId: string): ProjectLoaderResult {
         const existing = await fetchProject(projectId);
         if (cancelled) return;
 
-        if (existing) {
-          loadProject(existing);
-          setDuration(existing.canvas.duration);
-          setState("ready");
-          return;
+        if (!existing) {
+          throw new Error("This project no longer exists. Return to the dashboard and open a project from there.");
         }
 
-        const fresh = { ...createProject(), id: projectId };
-        await saveProject(fresh);
-        if (cancelled) return;
-
-        loadProject(fresh);
-        setDuration(fresh.canvas.duration);
+        loadProject(existing);
+        setDuration(existing.canvas.duration);
         setState("ready");
       } catch (caught) {
         if (cancelled) return;
