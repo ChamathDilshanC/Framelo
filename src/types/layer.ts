@@ -27,6 +27,7 @@ export interface DeviceLayerMetadata {
   screenAssetId: string | null;
   /** Bundled artwork used until an uploaded screen is assigned. */
   screenArtwork?:
+    | "default-wallpaper"
     | "editorial"
     | "manifesto"
     | "landscape"
@@ -85,6 +86,8 @@ export interface Layer {
   locked: boolean;
   transform: Transform;
   animations: AnimationTrack[];
+  /** Composition time range in seconds; omitted means the full composition. */
+  timing?: { start: number; end: number };
   metadata?: Partial<DeviceLayerMetadata> & Partial<TextLayerMetadata> & Record<string, unknown>;
 }
 

@@ -9,7 +9,7 @@ import { useEditorStore, type KeyframeSelection } from "@/store/editor-store";
 import { useProjectStore, type KeyframeRef } from "@/store/project-store";
 import type { AnimationTrack, Keyframe } from "@/types/animation";
 
-export const ROW_HEIGHT = 26;
+export const ROW_HEIGHT = 32;
 
 /** How far a pointer may wander before a click becomes a drag. */
 const DRAG_THRESHOLD_PX = 3;
@@ -279,15 +279,99 @@ function currentTimeOf(refs: KeyframeRef[], keyframeId: string): number | null {
 interface LayerSummaryRowProps {
   times: number[];
   geometry: TimelineGeometry;
+  layerId: string;
+  duration: number;
 }
 
 /** Aggregate row for a layer: every keyframe time across its tracks. */
-export function LayerSummaryRow({ times, geometry }: LayerSummaryRowProps) {
+export function LayerSummaryRow({ times, geometry, layerId, duration }: LayerSummaryRowProps) {
+  const layer = useProjectStore((state) => state.project?.layers.find((entry) => entry.id === layerId));
+  const timing = layer?.timing ?? { start: 0, end: duration };
+  const updateLayerTiming = useProjectStore((state) => state.updateLayerTiming);
+  const selected = useEditorStore((state) => state.selectedLayerId === layerId);
+  const drag = React.useRef<{ mode: "move" | "start" | "end"; x: number; timing: typeof timing } | null>(null);
+
+  function begin(event: React.PointerEvent<HTMLElement>) {
+    if (event.button !== 0) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const edge = 8;
+    const mode = x <= geometry.timeToX(timing.start) + edge ? "start" : x >= geometry.timeToX(timing.end) - edge ? "end" : "move";
+    drag.current = { mode, x: event.clientX, timing: { ...timing } };
+    event.currentTarget.setPointerCapture(event.pointerId);
+    useEditorStore.getState().pause();
+    useEditorStore.getState().selectLayer(layerId);
+  }
+
+  function move(event: React.PointerEvent<HTMLDivElement>) {
+    const state = drag.current;
+    if (!state) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const delta = geometry.xToTime(event.clientX - rect.left) - geometry.xToTime(state.x - rect.left);
+    const minLength = 1 / 30;
+    let start = state.timing.start;
+    let end = state.timing.end;
+    if (state.mode === "move") {
+      const length = end - start;
+      start = Math.max(0, Math.min(duration - length, start + delta));
+      end = start + length;
+    } else if (state.mode === "start") {
+      start = Math.max(0, Math.min(end - minLength, state.timing.start + delta));
+    } else {
+      end = Math.min(duration, Math.max(start + minLength, state.timing.end + delta));
+    }
+    updateLayerTiming(layerId, { start, end });
+  }
+
+  function end(event: React.PointerEvent<HTMLDivElement>) {
+    if (drag.current && event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    drag.current = null;
+  }
+
   return (
     <div
       className="relative border-b border-line bg-surface-raised/40"
       style={{ height: ROW_HEIGHT, width: geometry.width }}
     >
+      <span
+        className={cn(
+          "group absolute top-[3px] bottom-[3px] min-w-2 rounded-[4px] border shadow-sm transition-colors",
+          selected
+            ? "border-accent bg-accent/25 shadow-accent/15"
+            : "border-accent/45 bg-accent/12 hover:border-accent/80 hover:bg-accent/20",
+        )}
+        style={{
+          left: geometry.timeToX(timing.start),
+          width: Math.max(10, geometry.timeToX(timing.end) - geometry.timeToX(timing.start)),
+        }}
+        onPointerDown={(event) => {
+          event.stopPropagation();
+          begin(event);
+        }}
+        onPointerMove={move}
+        onPointerUp={end}
+        onPointerCancel={() => {
+          drag.current = null;
+        }}
+        title="Drag clip to move. Drag either edge to trim."
+      >
+        <span className="pointer-events-none absolute inset-x-2 top-1/2 flex -translate-y-1/2 items-center justify-between gap-2 overflow-hidden">
+          <span className="truncate text-[9px] font-medium tracking-wide text-accent">
+            {layer?.name ?? "Layer"}
+          </span>
+          <span className="shrink-0 rounded bg-surface/60 px-1 py-px font-mono text-[8px] text-ink-muted">
+            {(timing.end - timing.start).toFixed(1)}s
+          </span>
+        </span>
+        <span className="absolute top-0 bottom-0 left-0 flex w-2 cursor-ew-resize items-center justify-center rounded-l-[3px] bg-accent/30 opacity-70 transition-opacity group-hover:opacity-100">
+          <span className="h-3 w-px bg-accent" />
+          <span className="ml-px h-3 w-px bg-accent" />
+        </span>
+        <span className="absolute top-0 right-0 bottom-0 flex w-2 cursor-ew-resize items-center justify-center rounded-r-[3px] bg-accent/30 opacity-70 transition-opacity group-hover:opacity-100">
+          <span className="h-3 w-px bg-accent" />
+          <span className="ml-px h-3 w-px bg-accent" />
+        </span>
+      </span>
       {times.length > 1 ? (
         <span
           aria-hidden

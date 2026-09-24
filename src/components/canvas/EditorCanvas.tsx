@@ -8,6 +8,7 @@ import * as THREE from "three";
 import { DEVICE_TONE_MAPPING_EXPOSURE } from "@/components/devices/DeviceLighting";
 
 import { BackgroundRenderer } from "@/components/canvas/BackgroundRenderer";
+import { ContextRecovery } from "@/components/canvas/ContextRecovery";
 import { pickDeviceAt } from "@/engine/scene/device-picking";
 import { useAssetStore } from "@/store/asset-store";
 import { useProjectStore } from "@/store/project-store";
@@ -38,6 +39,15 @@ interface EditorCanvasProps {
  */
 export function EditorCanvas({ canvas, background, layers }: EditorCanvasProps) {
   const webglAvailable = useWebGLAvailable();
+  const [contextLost, setContextLost] = React.useState(false);
+  const [rendererVersion, setRendererVersion] = React.useState(0);
+  const handleContextLost = React.useCallback(() => setContextLost(true), []);
+  const restoreViewport = React.useCallback(() => {
+    // Rebuild GPU-only resources (including the studio environment) as well
+    // as the renderer. Project data and the saved orbit pose stay in stores.
+    setRendererVersion((version) => version + 1);
+    setContextLost(false);
+  }, []);
   const [screenError, setScreenError] = React.useState<string | null>(null);
   const [dropTargetId, setDropTargetId] = React.useState<string | null>(null);
   const updateDeviceMetadata = useProjectStore((state) => state.updateDeviceMetadata);
@@ -85,6 +95,7 @@ export function EditorCanvas({ canvas, background, layers }: EditorCanvasProps) 
           />
 
           <ErrorBoundary
+            key={rendererVersion}
             fallback={
               <div className="absolute inset-0 flex items-center justify-center bg-canvas p-6">
                 <Alert tone="danger" title="The 3D viewport could not start" className="max-w-sm">
@@ -98,7 +109,7 @@ export function EditorCanvas({ canvas, background, layers }: EditorCanvasProps) 
               <Canvas
                 className="!absolute inset-0"
                 dpr={[1, 2]}
-                frameloop="always"
+                frameloop={contextLost ? "never" : "always"}
                 gl={{
                   antialias: true,
                   alpha: true,
@@ -117,6 +128,7 @@ export function EditorCanvas({ canvas, background, layers }: EditorCanvasProps) 
                   gl.toneMappingExposure = DEVICE_TONE_MAPPING_EXPOSURE;
                 }}
               >
+                <ContextRecovery onLost={handleContextLost} onRestored={restoreViewport} />
                 <React.Suspense fallback={null}>
                   <Scene
                     layers={layers}
@@ -142,6 +154,18 @@ export function EditorCanvas({ canvas, background, layers }: EditorCanvasProps) 
               )
             )}
           </ErrorBoundary>
+
+          {contextLost ? (
+            <div role="status" className="absolute inset-0 z-30 flex items-center justify-center bg-canvas p-6">
+              <Alert tone="warning" title="Restoring the 3D viewport" className="max-w-sm">
+                <p>The graphics connection was interrupted. Your project is safe.</p>
+                <button type="button" onClick={restoreViewport}
+                  className="mt-3 rounded-sm bg-accent px-3 py-1.5 text-accent-ink">
+                  Restore viewport
+                </button>
+              </Alert>
+            </div>
+          ) : null}
 
           {deviceStatus?.model === "loading" ? (
             <DeviceLoading deviceName={deviceStatus.deviceName} />

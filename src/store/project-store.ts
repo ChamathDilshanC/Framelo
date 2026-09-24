@@ -119,6 +119,7 @@ interface ProjectStoreState {
   setLayerVisible: (layerId: string, visible: boolean) => void;
   setLayerLocked: (layerId: string, locked: boolean) => void;
   updateDeviceMetadata: (layerId: string, patch: Partial<DeviceLayerMetadata>) => void;
+  updateLayerTiming: (layerId: string, timing: { start: number; end: number }) => void;
 
   // transforms
   setTransformValue: (
@@ -467,6 +468,17 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => {
             metadata: { ...layer.metadata, ...patch },
           })),
         { coalesceKey: `metadata:${layerId}:${keys}` },
+      );
+    },
+
+    updateLayerTiming(layerId, timing) {
+      commit(
+        (project) =>
+          updateLayer(project, layerId, (layer) => ({
+            ...layer,
+            timing,
+          })),
+        { coalesceKey: `timing:${layerId}` },
       );
     },
 

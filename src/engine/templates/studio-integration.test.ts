@@ -16,7 +16,31 @@ describe('studio device assets', () => {
   it.each(['ipad', 'macbook'])('%s GLB has a real body and a correctly oriented independent display', async (id) => {
     const definition = getDevice(id);
     const bytes = readFileSync(`public${definition.model!.path}`);
-    const gltf = await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '');
+    // Geometry checks run in Node without an image decoder. Validate embedded
+    // textures in the GLB manifest, then omit their material references here.
+    const jsonLength = bytes.readUInt32LE(12);
+    const manifest = JSON.parse(bytes.subarray(20, 20 + jsonLength).toString());
+    if (id === 'macbook') {
+      expect(manifest.asset.extras.source).toContain('Macbook Pro 2020.obj');
+      expect(manifest.images).toHaveLength(4);
+      for (const image of manifest.images) {
+        const view = manifest.bufferViews[image.bufferView];
+        expect(view.byteLength).toBeGreaterThan(0);
+        expect(view.byteOffset + view.byteLength).toBeLessThanOrEqual(manifest.buffers[0].byteLength);
+      }
+      expect(manifest.materials.find((material: { name: string }) => material.name === 'Keyboard')
+        .pbrMetallicRoughness.baseColorTexture).toBeDefined();
+    }
+    for (const material of manifest.materials) delete material.pbrMetallicRoughness?.baseColorTexture;
+    const json = Buffer.from(JSON.stringify(manifest));
+    const paddedJson = Buffer.concat([json, Buffer.alloc((4 - json.length % 4) % 4, 0x20)]);
+    const binaryChunk = bytes.subarray(20 + jsonLength);
+    const header = Buffer.from(bytes.subarray(0, 20));
+    header.writeUInt32LE(20 + paddedJson.length + binaryChunk.length, 8);
+    header.writeUInt32LE(paddedJson.length, 12);
+    const geometryGlb = Buffer.concat([header, paddedJson, binaryChunk]);
+    const gltf = await new GLTFLoader().parseAsync(geometryGlb.buffer.slice(
+      geometryGlb.byteOffset, geometryGlb.byteOffset + geometryGlb.byteLength), '');
     const screen = gltf.scene.getObjectByName('Screen') as THREE.Mesh;
     expect(screen?.isMesh).toBe(true);
     expect((screen.material as THREE.Material).name).toBe('Display');

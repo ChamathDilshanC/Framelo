@@ -1,5 +1,6 @@
 /** Allowlisted local artwork survives save/load without temporary asset URLs. */
 export function templateScreenUrl(artwork: unknown): string | null {
+  if (artwork === "default-wallpaper") return "/default-wallpaper.png";
   if (typeof artwork === "string" && PREMIUM_ARTWORK.has(artwork)) return `/templates/studio/${artwork}.svg`;
   if (artwork === "studio-tablet" || artwork === "studio-desktop") return `/templates/studio/${artwork}.svg`;
   if (artwork === "nebula") return "/templates/nebula/player.svg";

@@ -104,6 +104,16 @@ describe("evaluateTransform", () => {
     // Untouched properties keep their static value.
     expect(evaluated.scaleX).toBe(1);
   });
+
+  it("hides a layer outside its timeline clip range", () => {
+    const layer = layerWith([]);
+    layer.timing = { start: 1, end: 3 };
+
+    expect(evaluateTransform(layer, 0.99).opacity).toBe(0);
+    expect(evaluateTransform(layer, 1).opacity).toBe(1);
+    expect(evaluateTransform(layer, 3).opacity).toBe(1);
+    expect(evaluateTransform(layer, 3.01).opacity).toBe(0);
+  });
 });
 
 describe("track helpers", () => {

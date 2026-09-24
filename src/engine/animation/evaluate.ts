@@ -64,7 +64,10 @@ export function findTrack(
  * else falls back to the layer's static transform.
  */
 export function evaluateTransform(layer: Layer, time: number): Transform {
-  return evaluateTransformWith(layer.transform, layer.animations, time);
+  const result = evaluateTransformWith(layer.transform, layer.animations, time);
+  const timing = layer.timing;
+  if (timing && (time < timing.start || time > timing.end)) result.opacity = 0;
+  return result;
 }
 
 /**

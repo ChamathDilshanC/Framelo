@@ -70,9 +70,7 @@ export const DeviceRenderer = React.memo(function DeviceRenderer({
   const metadata = (layer.metadata ?? {}) as Partial<DeviceLayerMetadata>;
   const device = getDevice(metadata.deviceId ?? "");
   const missingMedia = Boolean(metadata.screenAssetId && !mediaUrl);
-  const defaultScreenUrl = templateScreenUrl(metadata.screenArtwork ?? (
-    device.category === "tablet" ? "studio-tablet" : device.category === "laptop" ? "studio-desktop" : undefined
-  ));
+  const defaultScreenUrl = templateScreenUrl(metadata.screenArtwork ?? "default-wallpaper");
 
   const [modelState, setModelState] = React.useState<{ deviceId: string; status: DeviceModelStatus; error: string | null }>({ deviceId: device.id, status: "idle", error: null });
   // Stale results cannot expose a fallback or the previous device on a switch.

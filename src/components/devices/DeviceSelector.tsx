@@ -243,7 +243,7 @@ function ModelCredits() {
           </span>
         ))}
         <span className="block pt-1">
-          iPad and MacBook: original Framelo studio geometry. iPhone Sketchfab assets under{" "}
+          iPad: original Framelo studio geometry. MacBook Pro 2020: imported model. iPhone Sketchfab assets under{" "}
           <a
             href="https://creativecommons.org/licenses/by/4.0/"
             target="_blank"

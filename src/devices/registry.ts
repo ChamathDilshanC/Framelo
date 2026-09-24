@@ -1,4 +1,4 @@
-import { ADDITIONAL_DEVICES, MODELLED_DEVICES } from "@/engine/devices/device-definitions";
+import { MODELLED_DEVICES } from "@/engine/devices/device-definitions";
 import type { DeviceDefinition } from "@/types/device";
 
 /**
@@ -7,7 +7,6 @@ import type { DeviceDefinition } from "@/types/device";
  */
 const DEVICE_LIST: DeviceDefinition[] = [
   ...MODELLED_DEVICES,
-  ...ADDITIONAL_DEVICES,
   {
     id: "browser",
     name: "Browser",
@@ -37,7 +36,9 @@ export const DEFAULT_DEVICE_ID = MODELLED_DEVICES[0].id;
  * saved against a device that has since been renamed must still open.
  */
 export function getDevice(deviceId: string): DeviceDefinition {
-  return DEVICE_LIST.find((device) => device.id === deviceId) ?? MODELLED_DEVICES[0];
+  // Preserve saved laptop scenes after removing the duplicate M4 library card.
+  const resolvedId = deviceId === "macbook-pro-m4" ? "macbook" : deviceId;
+  return DEVICE_LIST.find((device) => device.id === resolvedId) ?? MODELLED_DEVICES[0];
 }
 
 export function getAvailableDevices(): DeviceDefinition[] {

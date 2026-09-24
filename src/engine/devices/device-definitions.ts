@@ -41,9 +41,11 @@ function fallbackBody(width: number, height: number) {
 }
 
 const IPHONE_15_PRO_MAX_FALLBACK = fallbackBody(1.48, 3.02);
-const IPHONE_13_PRO_FALLBACK = fallbackBody(1.42, 3.02);
 const IPHONE_17_PRO_MAX_FALLBACK = fallbackBody(1.5, 3.02);
 const IPHONE_17_PRO_FALLBACK = fallbackBody(1.45, 3.02);
+const IPHONE_DUO_FALLBACK = fallbackBody(1.48, 3.02);
+const IPHONE_18_PRO_MAX_FALLBACK = fallbackBody(1.46, 3.02);
+const IPHONE_13_PRO_MAX_FALLBACK = fallbackBody(1.48, 3.02);
 
 /** Flat, unlit deep black — for bezels and Dynamic Island pills that would
  * otherwise catch the light rig and render as reflective grey. */
@@ -116,24 +118,6 @@ export const IPHONE_15_PRO_MAX: DeviceDefinition = {
         polygonOffsetUnits: -12,
       },
     },
-  },
-};
-
-export const IPHONE_13_PRO: DeviceDefinition = {
-  id: "iphone-13-pro",
-  name: "iPhone 13 Pro",
-  category: "phone",
-  description: '6.1" stainless steel phone with a classic notch.',
-  ratioLabel: "19.5 : 9",
-  available: true,
-  ...IPHONE_13_PRO_FALLBACK,
-  screenAspect: 1170 / 2532,
-  defaultCamera: { position: [0, 0.1, 7.6], target: [0, 0, 0], fov: 32 },
-  features: {
-    notch: true,
-    homeIndicator: true,
-    sideButtons: true,
-    cameraBump: true,
   },
 };
 
@@ -245,6 +229,153 @@ export const IPHONE_17_PRO: DeviceDefinition = {
   },
 };
 
+export const IPHONE_DUO: DeviceDefinition = {
+  id: "iphone-duo",
+  name: "iPhone Duo",
+  category: "phone",
+  description: "Dual iPhone presentation with two independently modelled displays.",
+  ratioLabel: "19.5 : 9",
+  available: true,
+  ...IPHONE_DUO_FALLBACK,
+  screenAspect: 1290 / 2796,
+  defaultCamera: { position: [0, 0.1, 7.6], target: [0, 0, 0], fov: 32 },
+  features: {
+    dynamicIsland: true,
+    homeIndicator: true,
+    sideButtons: true,
+    cameraBump: true,
+  },
+  model: {
+    path: "/devices/iphone-duo.glb",
+    screenMeshNames: ["Cube.053", "Cube.011"],
+    screenMaterialNames: ["Screen.002", "Screen.001"],
+    rotation: [0, Math.PI, 0],
+    normalizeHeight: NORMALIZE_HEIGHT,
+    screenPixels: [1290, 2796],
+    uv: { mirrorX: true },
+    roles: {
+      "Glass screen": "glass",
+      "Glass сamera": "glass",
+      "Camera frame": "frame",
+      "Camera ": "lens",
+      Flash: "sensor",
+    },
+  },
+};
+
+export const IPHONE_18_PRO_MAX: DeviceDefinition = {
+  id: "iphone-18-pro-max",
+  name: "iPhone 18 Pro Max",
+  category: "phone",
+  description: "High-quality iPhone 18 Pro Max model with an editable display.",
+  ratioLabel: "19.5 : 9",
+  available: true,
+  ...IPHONE_18_PRO_MAX_FALLBACK,
+  screenAspect: 1320 / 2868,
+  defaultCamera: { position: [0, 0.1, 7.6], target: [0, 0, 0], fov: 32 },
+  features: {
+    dynamicIsland: true,
+    homeIndicator: true,
+    sideButtons: true,
+    cameraBump: true,
+  },
+  model: {
+    path: "/devices/iphone-18-pro-max.glb",
+    screenMeshNames: [],
+    screenMaterialNames: ["Material.001"],
+    rotation: [0, Math.PI, 0],
+    normalizeHeight: NORMALIZE_HEIGHT,
+    screenPixels: [1320, 2868],
+    roles: {
+      "17ProMax_glass": "glass",
+      "17ProMax_Black2": "glass",
+      "17ProMax_black1": "glass",
+      "17ProMax_Lens": "lens",
+      "17ProMax_Lens2.001": "lens",
+      "17ProMax_Logo": "logo",
+      "Material.002": "sensor",
+      R: "sensor",
+    },
+    inset: { border: 0, radius: 0 },
+  },
+};
+
+export const IPHONE_13_PRO_MAX: DeviceDefinition = {
+  id: "iphone-13-pro-max",
+  name: "iPhone 13 Pro Max",
+  category: "phone",
+  description: "iPhone 13 Pro Max model with an editable display.",
+  ratioLabel: "19.5 : 9",
+  available: true,
+  ...IPHONE_13_PRO_MAX_FALLBACK,
+  screenAspect: 1284 / 2778,
+  defaultCamera: { position: [0, 0.1, 7.6], target: [0, 0, 0], fov: 32 },
+  features: {
+    notch: true,
+    homeIndicator: true,
+    sideButtons: true,
+    cameraBump: true,
+  },
+  model: {
+    path: "/devices/iphone-13-pro-max.glb",
+    screenMeshNames: ["Body.001_Screen Glass_0"],
+    screenMaterialNames: ["Screen_Glass"],
+    rotation: [0, 0, 0],
+    normalizeHeight: NORMALIZE_HEIGHT,
+    screenPixels: [1284, 2778],
+    roles: {
+      Bezel: "glass",
+      Screen_Glass: "glass",
+      Camera_Glass: "glass",
+      Lens: "lens",
+      Camera_Frame: "frame",
+      "Camera_Frame.001": "frame",
+      Logo: "logo",
+      Flash: "sensor",
+      material: "sensor",
+      Port: "sensor",
+    },
+    inset: { border: 0, radius: 0 },
+  },
+};
+
+export const MACBOOK_NEO: DeviceDefinition = {
+  id: "macbook-neo-2026",
+  name: "MacBook Neo",
+  category: "laptop",
+  description: "MacBook Neo 2026 with an editable display and anodised aluminium body.",
+  ratioLabel: "16 : 10",
+  available: true,
+  body: { width: 4.48, height: 3, depth: 2.95, cornerRadius: 0.08, bezel: 0.1 },
+  screen: {
+    width: 4.24,
+    height: 2.65,
+    cornerRadius: 0.05,
+    position: [0, 0.08, -1.44],
+    rotation: [0, 0, 0],
+  },
+  screenAspect: 16 / 10,
+  defaultCamera: { position: [0, 0.1, 7.6], target: [0, 0, 0], fov: 32 },
+  model: {
+    path: "/devices/macbook-neo-2026.glb",
+    screenMeshNames: ["Object_4"],
+    screenMaterialNames: ["Glass_-_Heavy_Color"],
+    rotation: [0, 0, 0],
+    normalizeHeight: NORMALIZE_HEIGHT,
+    screenPixels: [2560, 1600],
+    inset: { border: 0, radius: 0 },
+    roles: {
+      "Glass_-_Heavy_Color": "screen",
+      "Aluminum_-_Anodized_Rough_Grey": "body",
+      "Aluminum_-_Brushed_Linear": "frame",
+      "Aluminum_-_Polished": "frame",
+      "Nickel_-_Satin": "button",
+      "Plastic_-_Translucent_Matte_Yellow": "sensor",
+      "Steel_-_Satin": "frame",
+    },
+  },
+};
+
 /** Original studio models with dedicated, top-left UV display surfaces. */
 export const IPAD: DeviceDefinition = {
   id: "ipad", name: "iPad", category: "tablet", available: true,
@@ -257,25 +388,15 @@ export const IPAD: DeviceDefinition = {
     roles: { Bezel: "glass", Keyboard: "sensor", Lens: "lens", Legend: "sensor" }, inset: { border: 0, radius: 0 } },
 };
 export const MACBOOK: DeviceDefinition = {
-  id: "macbook", name: "MacBook", category: "laptop", available: true,
-  description: "Open aluminium laptop with a modelled keyboard, trackpad and editable display.", ratioLabel: "16 : 10",
-  body: { width: 4.4, height: 3, depth: 2.8, cornerRadius: 0.06, bezel: 0.1 },
-  screen: { width: 4.12, height: 2.575, cornerRadius: 0.03, position: [0, 0, 0.054], rotation: [0, 0, 0] },
+  id: "macbook", name: "MacBook Pro 2020", category: "laptop", available: true,
+  description: "MacBook Pro 2020 with a textured keyboard, Touch Bar, trackpad and editable display.", ratioLabel: "16 : 10",
+  body: { width: 4.323, height: 3, depth: 2.954, cornerRadius: 0.06, bezel: 0.1 },
+  screen: { width: 4.01, height: 2.506, cornerRadius: 0, position: [0, 0.085, -1.435], rotation: [0, 0, 0] },
   screenAspect: 16 / 10, defaultCamera: { position: [0, 0.1, 7.6], target: [0, 0, 0], fov: 32 },
-  model: { path: "/devices/macbook.glb", screenMeshNames: ["Screen"], screenMaterialNames: ["Display"],
+  model: { path: "/devices/macbook-pro-2020.glb", screenMeshNames: ["Screen"], screenMaterialNames: ["Display"],
     rotation: [0, 0, 0], normalizeHeight: 3, screenPixels: [2560, 1600],
-    roles: { Bezel: "glass", Keyboard: "sensor", Lens: "lens", Legend: "sensor" } },
-};
-
-export const MACBOOK_PRO_M4: DeviceDefinition = {
-  id: "macbook-pro-m4", name: "MacBook Pro M4", category: "laptop", available: true,
-  description: "Open aluminium MacBook Pro with an editable Liquid Retina display.", ratioLabel: "16 : 10",
-  body: { width: 4.4, height: 3, depth: 2.8, cornerRadius: 0.06, bezel: 0.1 },
-  screen: { width: 4.12, height: 2.575, cornerRadius: 0.03, position: [0, 0, 0.054], rotation: [0, 0, 0] },
-  screenAspect: 16 / 10, defaultCamera: { position: [0, 0.1, 7.6], target: [0, 0, 0], fov: 32 },
-  model: { path: "/devices/macbook.glb", screenMeshNames: ["Screen"], screenMaterialNames: ["Display"],
-    rotation: [0, 0, 0], normalizeHeight: 3, screenPixels: [3456, 2234],
-    roles: { Bezel: "glass", Keyboard: "sensor", Lens: "lens", Legend: "sensor" } },
+    roles: { Bezel: "glass", Keyboard: "sensor", TouchBar: "sensor", Rubber: "sensor", Logo: "sensor", Lens: "lens", Legend: "sensor" },
+    inset: { border: 0, radius: 0 } },
 };
 
 /** Devices that ship with a photorealistic GLB, in library order. */
@@ -283,15 +404,14 @@ export const MODELLED_DEVICES: DeviceDefinition[] = [
   IPHONE_15_PRO_MAX,
   IPHONE_17_PRO_MAX,
   IPHONE_17_PRO,
+  IPHONE_DUO,
+  IPHONE_18_PRO_MAX,
+  IPHONE_13_PRO_MAX,
   IPAD,
   MACBOOK,
+  MACBOOK_NEO,
 ];
 
-/** Additional device definitions that use the procedural renderer or shared studio geometry. */
-export const ADDITIONAL_DEVICES: DeviceDefinition[] = [
-  IPHONE_13_PRO,
-  MACBOOK_PRO_M4,
-];
 
 /**
  * Body finishes.

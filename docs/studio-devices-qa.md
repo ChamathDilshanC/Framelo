@@ -1,7 +1,8 @@
 # Studio devices and readiness
 
-- `ipad` and `macbook` are original, stylized, editable GLBs. Regenerate with `node scripts/generate-studio-devices.mjs`. The generator shares repeated keyboard geometry; no external model downloads are required.
-- `iphone-13-pro` uses the editable procedural phone renderer with a notch, while `macbook-pro-m4` reuses the original unbranded studio laptop geometry with its own display definition.
+- `ipad` is original, stylized Framelo geometry. Regenerate with `node scripts/generate-studio-devices.mjs`; this also retains the legacy studio laptop asset.
+- `macbook` now uses `public/devices/macbook-pro-2020.glb`, imported from the supplied Macbook-Pro-2020 folder. Regenerate with `node scripts/import-macbook-pro-2020.mjs "C:/path/to/Macbook-Pro-2020"`. The importer preserves all nine OBJ parts, restores keyboard and Touch Bar textures, adds masked logos and a separate editable 16:10 screen, and embeds all textures in the GLB.
+- `iphone-13-pro` uses the editable procedural phone renderer with a notch. The duplicate `macbook-pro-m4` library entry is removed; saved scenes using that ID resolve to the imported MacBook.
 - Both use a dedicated `Screen` mesh / `Display` material, top-left UVs, existing screen fit/filter uniforms, and the standard layer transform and animation path.
 - Templates use the existing live 3D preview cards. `TemplateDeviceSpec.deviceId` is optional so older phone-only templates retain their existing behavior.
 - A model is hidden until its screen has decoded, its finish is applied and shaders have compiled. The parent frame loop applies its animated transform before the 240 ms reveal. Downloads no longer show a temporary phone that swaps to a different model.

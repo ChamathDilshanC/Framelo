@@ -1,10 +1,8 @@
 "use client";
 
-import { Environment } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
 import * as React from "react";
-import * as THREE from "three";
-import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import { installStudioEnvironment, setStudioEnvironmentIntensity } from "@/engine/scene/studio-environment";
 
 /**
  * The studio light rig.
@@ -85,21 +83,14 @@ export const DeviceLighting = React.memo(function DeviceLighting({
  */
 function StudioEnvironment({ intensity }: { intensity: number }) {
   const gl = useThree((state) => state.gl);
+  const scene = useThree((state) => state.scene);
 
-  const texture = React.useMemo(() => {
-    const pmrem = new THREE.PMREMGenerator(gl);
-    const room = new RoomEnvironment();
-    const target = pmrem.fromScene(room, 0.04);
+  // Effects give Strict Mode and viewport recovery a matched create/dispose
+  // cycle. useMemo would leak targets from discarded renders.
+  React.useLayoutEffect(() => installStudioEnvironment(gl, scene), [gl, scene]);
+  React.useLayoutEffect(() => setStudioEnvironmentIntensity(scene, intensity), [scene, intensity]);
 
-    // The generator and the source room are scaffolding; only the cube map is kept.
-    room.dispose();
-    pmrem.dispose();
-    return target.texture;
-  }, [gl]);
-
-  React.useEffect(() => () => texture.dispose(), [texture]);
-
-  return <Environment map={texture} environmentIntensity={intensity} />;
+  return null;
 }
 
 /**

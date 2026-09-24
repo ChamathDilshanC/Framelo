@@ -157,7 +157,7 @@ export function Timeline({ layers, canvas }: TimelineProps) {
       aria-label="Timeline"
       className={cn(
         "flex shrink-0 flex-col overflow-hidden border-t border-line bg-surface transition-[height] duration-200 ease-out-quint",
-        open ? "h-[268px]" : "h-10",
+        open ? "h-[340px]" : "h-10",
       )}
     >
       {open ? (
@@ -251,7 +251,12 @@ export function Timeline({ layers, canvas }: TimelineProps) {
 
                 {layers.map((layer) => (
                   <div key={layer.id}>
-                    <LayerSummaryRow times={collectKeyframeTimes(layer)} geometry={geometry} />
+                    <LayerSummaryRow
+                      times={collectKeyframeTimes(layer)}
+                      geometry={geometry}
+                      layerId={layer.id}
+                      duration={duration}
+                    />
                     {layer.animations
                       .filter((track) => track.keyframes.length > 0)
                       .map((track) => (
