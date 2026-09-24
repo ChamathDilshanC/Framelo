@@ -10,7 +10,7 @@ export interface ScreenLayout {
 }
 
 function clampZoom(value: number): number {
-  return Number.isFinite(value) ? Math.max(1, Math.min(3, value)) : 1;
+  return Number.isFinite(value) ? Math.max(0.5, Math.min(3, value)) : 1;
 }
 
 /**
@@ -44,6 +44,12 @@ export function computeScreenLayout(
   const screenAspect = screenWidth / screenHeight;
   const ratio = imageAspect / screenAspect;
   const imageZoom = clampZoom(zoom);
+
+  if (imageZoom < 1) {
+    const planeWidth = ratio > 1 ? screenWidth * imageZoom : screenHeight * imageAspect * imageZoom;
+    const planeHeight = ratio > 1 ? screenWidth / imageAspect * imageZoom : screenHeight * imageZoom;
+    return { ...base, planeWidth, planeHeight };
+  }
 
   if (fit === "cover") {
     if (ratio > 1) {

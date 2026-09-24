@@ -125,7 +125,7 @@ export function ScreenPanel({ layer }: { layer: Layer }) {
             aria-label="Screen image zoom"
             value={metadata.screenZoom ?? 1}
             onChange={(screenZoom) => updateDeviceMetadata(layer.id, { screenZoom })}
-            min={1}
+            min={0.5}
             max={3}
             step={0.01}
             className="flex-1"
@@ -134,7 +134,7 @@ export function ScreenPanel({ layer }: { layer: Layer }) {
             label="×"
             value={metadata.screenZoom ?? 1}
             onChange={(screenZoom) => updateDeviceMetadata(layer.id, { screenZoom })}
-            min={1}
+            min={0.5}
             max={3}
             step={0.01}
             decimals={2}

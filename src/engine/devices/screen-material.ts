@@ -306,7 +306,7 @@ export function applyScreenAppearance(
     clampFilter(appearance.cropX, -1, 1),
     clampFilter(appearance.cropY, -1, 1),
   );
-  uniforms.uZoom.value = clampFilter(appearance.zoom, 1, 3);
+  uniforms.uZoom.value = clampFilter(appearance.zoom, 0.5, 3);
   uniforms.uImageAspect.value = appearance.imageAspect ?? surface.canvasAspect;
 }
 
