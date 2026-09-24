@@ -10,7 +10,7 @@ export interface ScreenLayout {
 }
 
 function clampZoom(value: number): number {
-  return Number.isFinite(value) ? Math.max(0.5, Math.min(3, value)) : 1;
+  return Number.isFinite(value) ? Math.max(0.2, Math.min(3, value)) : 1;
 }
 
 /**

@@ -46,6 +46,11 @@ describe("computeScreenLayout", () => {
     expect(zoomedOut.repeat).toEqual([1, 1]);
   });
 
+  it("allows an extra-wide zoom-out range", () => {
+    const zoomedOut = computeScreenLayout("cover", SCREEN_W, SCREEN_H, 1.78, 0, 0, 0.2);
+    expect(zoomedOut.planeWidth).toBeCloseTo(SCREEN_W * 0.2, 6);
+  });
+
   it("crops top and bottom for an extra-tall image in cover mode", () => {
     const layout = computeScreenLayout("cover", SCREEN_W, SCREEN_H, SCREEN_ASPECT / 2);
     expect(layout.repeat[0]).toBe(1);
