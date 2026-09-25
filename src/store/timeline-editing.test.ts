@@ -202,6 +202,34 @@ describe("duplicate, copy and delete", () => {
 });
 
 describe("shortening the composition", () => {
+  it("fits every keyframe proportionally to the new duration", () => {
+    useProjectStore.getState().updateCanvas({ duration: 10 });
+    seedTrack([0, 1, 2, 3]);
+    const fitted = useProjectStore.getState().fitAnimationToDuration(6);
+
+    expect(fitted).toBe(4);
+    expect(useProjectStore.getState().project!.canvas.duration).toBe(6);
+    expect(track("y")!.keyframes.map((k) => k.time)).toEqual([0, 0.6, 1.2, 1.8]);
+  });
+
+  it("fits keyframes that were already beyond the old composition", () => {
+    useProjectStore.getState().updateCanvas({ duration: 10 });
+    seedTrack([0, 5, 10]);
+    useProjectStore.getState().fitAnimationToDuration(5);
+
+    expect(track("y")!.keyframes.map((k) => k.time)).toEqual([0, 2.5, 5]);
+  });
+
+  it("restores duration and keyframe timing with one undo", () => {
+    useProjectStore.getState().updateCanvas({ duration: 10 });
+    seedTrack([0, 1, 2, 3]);
+    useProjectStore.getState().fitAnimationToDuration(6);
+    useProjectStore.getState().undo();
+
+    expect(useProjectStore.getState().project!.canvas.duration).toBe(10);
+    expect(track("y")!.keyframes.map((k) => k.time)).toEqual([0, 1, 2, 3]);
+  });
+
   it("reports what sits past a proposed duration", () => {
     seedTrack([0, 1, 5.2, 6, 7]);
     const doomed = keyframesBeyond(useProjectStore.getState().project!, 5);

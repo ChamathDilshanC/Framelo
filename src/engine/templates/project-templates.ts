@@ -7,6 +7,7 @@ import type { EasingType } from "@/types/animation";
 import { STUDIO_TEMPLATES } from "./studio-templates";
 import { NEBULA_TEMPLATE } from "./nebula-template";
 import { EMERALD_TEMPLATE } from "./emerald-template";
+import { REFERENCE_TEMPLATES } from "./reference-templates";
 
 /**
  * What a template is *for*, in the only terms a browser can filter on.
@@ -125,7 +126,7 @@ export const PROJECT_TEMPLATES: ProjectTemplate[] = [{
       entrance: { start: 0, end: 1.1, from: { rotationZ: -22, scaleX: 0.8, scaleY: 0.8, opacity: 0 } },
     },
   ],
-}, NEBULA_TEMPLATE, EMERALD_TEMPLATE, ...STUDIO_TEMPLATES];
+}, NEBULA_TEMPLATE, EMERALD_TEMPLATE, ...STUDIO_TEMPLATES, ...REFERENCE_TEMPLATES];
 
 const BY_ID = new Map(PROJECT_TEMPLATES.map((template) => [template.id, template]));
 

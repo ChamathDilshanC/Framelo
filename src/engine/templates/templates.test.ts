@@ -17,11 +17,12 @@ import { createDeviceLayer } from "@/lib/project-factory";
 import { IDENTITY_TRANSFORM } from "@/types/layer";
 
 describe("the template catalogue", () => {
-  it("preserves mobile and replaces the old studio entries with exactly six scenes", () => {
+  it("preserves the catalogue and adds the four reference posters", () => {
     expect(PROJECT_TEMPLATES.map((template) => template.id)).toEqual([
       "kinetic-mobile-presentation", "nebula-music-experience", "emerald-finance-showcase",
       "crimson-editorial-tablet", "neon-portfolio-tablet", "midnight-sales-laptop",
       "floating-commerce-laptop", "bold-studio-laptop", "amber-agency-ecosystem", "lime-digital-campaign",
+      "creative-agency-purple", "digital-stress-orange", "sales-person-orange", "bestrade-red-portfolio",
     ]);
   });
 

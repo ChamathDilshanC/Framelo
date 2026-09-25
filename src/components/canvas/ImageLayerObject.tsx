@@ -13,7 +13,7 @@ export function ImageLayerObject({ layer, getTime, renderOrder = 0, mediaUrl }: 
 }) {
   const source = layer.metadata?.imageSrc;
   // Bundled paths are portable; uploaded images are resolved through the asset store.
-  const url = mediaUrl ?? (typeof source === "string" && /^\/templates\/[a-z0-9/_-]+\.svg$/.test(source) ? source : null);
+  const url = mediaUrl ?? (typeof source === "string" && /^\/templates\/[a-z0-9/_-]+\.(?:svg|png|webp)$/.test(source) ? source : null);
   const { texture } = useScreenTexture(url, { flipY: true });
   const mesh = React.useRef<THREE.Mesh>(null);
   const material = React.useRef<THREE.MeshBasicMaterial>(null);

@@ -42,8 +42,7 @@ export function buildTemplateLayers(
     layers: [
       ...[...texts, ...images].filter((layer) => layer.transform.z < 0).sort((a, b) => a.transform.z - b.transform.z),
       ...devices,
-      ...texts.filter((layer) => layer.transform.z >= 0),
-      ...images.filter((layer) => layer.transform.z >= 0),
+      ...[...texts, ...images].filter((layer) => layer.transform.z >= 0).sort((a, b) => a.transform.z - b.transform.z),
     ],
     deviceLayerId: device.id,
   };

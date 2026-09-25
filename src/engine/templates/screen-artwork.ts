@@ -1,6 +1,9 @@
 /** Allowlisted local artwork survives save/load without temporary asset URLs. */
 export function templateScreenUrl(artwork: unknown): string | null {
   if (artwork === "default-wallpaper") return "/default-wallpaper.png";
+  if (typeof artwork === "string" && REFERENCE_ARTWORK.has(artwork)) {
+    return `/templates/reference/${artwork.slice("reference-".length)}-screen.svg`;
+  }
   if (typeof artwork === "string" && PREMIUM_ARTWORK.has(artwork)) return `/templates/studio/${artwork}.svg`;
   if (artwork === "studio-tablet" || artwork === "studio-desktop") return `/templates/studio/${artwork}.svg`;
   if (artwork === "nebula") return "/templates/nebula/player.svg";
@@ -13,4 +16,8 @@ export function templateScreenUrl(artwork: unknown): string | null {
 const PREMIUM_ARTWORK = new Set([
   "crimson-editorial", "neon-portfolio", "midnight-sales", "bold-studio", "floating-commerce",
   "amber-agency", "amber-tablet", "lime-campaign", "amber-mobile", "lime-mobile",
+]);
+
+const REFERENCE_ARTWORK = new Set([
+  "reference-creative", "reference-services", "reference-sales", "reference-trading",
 ]);

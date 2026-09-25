@@ -12,7 +12,7 @@ import { CANVAS_PRESETS, FPS_OPTIONS, MAX_DURATION, MIN_DURATION } from "@/lib/c
 import { notify } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { useEditorStore } from "@/store/editor-store";
-import { keyframesBeyond, useProjectStore } from "@/store/project-store";
+import { useProjectStore } from "@/store/project-store";
 import { resolveWorkArea } from "@/types/project";
 
 interface CanvasSettingsProps {
@@ -23,11 +23,11 @@ interface CanvasSettingsProps {
 export function CanvasSettings({ trigger }: CanvasSettingsProps) {
   const canvas = useProjectStore((state) => state.project?.canvas);
   const updateCanvas = useProjectStore((state) => state.updateCanvas);
-  const cropAnimation = useProjectStore((state) => state.cropAnimation);
+  const fitAnimationToDuration = useProjectStore((state) => state.fitAnimationToDuration);
   const setWorkArea = useProjectStore((state) => state.setWorkArea);
   const setDuration = useEditorStore((state) => state.setDuration);
 
-  /** A shortening that would destroy keyframes, waiting to be confirmed. */
+  /** A shortening that changes keyframe timing, waiting to be confirmed. */
   const [pendingCrop, setPendingCrop] = React.useState<{ duration: number; count: number } | null>(
     null,
   );
@@ -55,9 +55,13 @@ export function CanvasSettings({ trigger }: CanvasSettingsProps) {
     const project = useProjectStore.getState().project;
     if (!project) return;
 
-    const doomed = keyframesBeyond(project, next);
-    if (doomed.length > 0 && next < project.canvas.duration) {
-      setPendingCrop({ duration: next, count: doomed.length });
+    const keyframeCount = project.layers.reduce(
+      (count, layer) =>
+        count + layer.animations.reduce((trackCount, track) => trackCount + track.keyframes.length, 0),
+      0,
+    );
+    if (keyframeCount > 0 && next < project.canvas.duration) {
+      setPendingCrop({ duration: next, count: keyframeCount });
       return;
     }
 
@@ -211,26 +215,22 @@ export function CanvasSettings({ trigger }: CanvasSettingsProps) {
         open={pendingCrop !== null}
         onOpenChange={(open) => !open && setPendingCrop(null)}
         tone="danger"
-        title={`Crop animation to ${pendingCrop?.duration.toFixed(2) ?? ""}s?`}
+        title={`Fit animation to ${pendingCrop?.duration.toFixed(2) ?? ""}s?`}
         description={
           pendingCrop
-            ? `${pendingCrop.count} keyframe${pendingCrop.count === 1 ? "" : "s"} sit${
-                pendingCrop.count === 1 ? "s" : ""
-              } past ${pendingCrop.duration.toFixed(2)}s. Cropping deletes ${
-                pendingCrop.count === 1 ? "it" : "them"
-              }. You can also shorten the composition and keep the animation — the keyframes stay, they simply play past the end. One undo takes a crop back either way.`
+            ? `${pendingCrop.count} keyframe${pendingCrop.count === 1 ? "" : "s"} will be re-timed proportionally so the full animation fits exactly inside ${pendingCrop.duration.toFixed(2)}s. One undo restores the previous duration and timing.`
             : ""
         }
-        confirmLabel="Crop"
+        confirmLabel="Fit keyframes"
         cancelLabel="Keep animation"
         onConfirm={() => {
           if (!pendingCrop) return;
-          const removed = cropAnimation(pendingCrop.duration);
-          commitDuration(pendingCrop.duration);
+          const fitted = fitAnimationToDuration(pendingCrop.duration);
+          setDuration(pendingCrop.duration);
           setPendingCrop(null);
           notify.success(
-            `Cropped to ${pendingCrop.duration.toFixed(2)}s`,
-            `${removed} keyframe${removed === 1 ? "" : "s"} removed. Ctrl+Z undoes it.`,
+            `Animation fit to ${pendingCrop.duration.toFixed(2)}s`,
+            `${fitted} keyframe${fitted === 1 ? "" : "s"} re-timed. Ctrl+Z undoes it.`,
           );
         }}
         // Cancelling still shortens the composition; it just leaves the

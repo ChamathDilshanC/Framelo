@@ -44,6 +44,10 @@ export interface DeviceLayerMetadata {
     | "lime-campaign"
     | "amber-mobile"
     | "lime-mobile"
+    | "reference-creative"
+    | "reference-services"
+    | "reference-sales"
+    | "reference-trading"
     | "emerald";
   screenFit: ScreenFit;
   /** Normalized image position inside a cropped screen. */

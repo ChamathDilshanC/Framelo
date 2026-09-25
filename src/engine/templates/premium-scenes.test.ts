@@ -10,7 +10,7 @@ import { templateScreenUrl } from './screen-artwork';
 describe('premium device scene acceptance', () => {
   it('contains the expected scenes per requested category', () => {
     expect(searchProjectTemplates('tablet', '')).toHaveLength(2);
-    expect(searchProjectTemplates('laptop', '')).toHaveLength(3);
+    expect(searchProjectTemplates('laptop', '')).toHaveLength(6);
     expect(searchProjectTemplates('multi-device', '')).toHaveLength(2);
     expect(STUDIO_TEMPLATES).toHaveLength(7);
   });

@@ -909,21 +909,20 @@ evaluator physics.
 
 ## Changing the duration
 
-Lengthening is free and immediate. Shortening is not, and Framelo will not
-silently delete animation to make it fit. When keyframes sit past the proposed
-end you get a question that names the number:
+Lengthening is free and immediate. Shortening an animated composition asks how
+the timing should change rather than silently deleting animation:
 
-> **Crop animation to 5.00s?**
-> 12 keyframes sit past 5.00s. Cropping deletes them. You can also shorten the
-> composition and keep the animation — the keyframes stay, they simply play past
-> the end.
-> [Keep animation] [Crop]
+> **Fit animation to 5.00s?**
+> 12 keyframes will be re-timed proportionally so the full animation fits
+> exactly inside 5.00s.
+> [Keep animation] [Fit keyframes]
 
-**Crop** deletes them, in one undo. **Keep animation** shortens the composition
-and leaves them alone — a composition is allowed to be shorter than its
-animation, so shortening it to check a timing and lengthening it again brings
-the work back intact. Escape does neither and changes nothing, because
-dismissing a dialog must never be an action.
+**Fit keyframes** rescales every keyframe time against the old and new
+composition lengths, in one undo. **Keep animation** shortens the composition
+and leaves keyframe times alone — a composition is allowed to be shorter than
+its animation, so lengthening it again brings the work back intact. Escape does
+neither and changes nothing, because dismissing a dialog must never be an
+action.
 
 ## In and out points
 

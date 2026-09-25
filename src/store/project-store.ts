@@ -177,6 +177,8 @@ interface ProjectStoreState {
   pasteKeyframes: (layerId: string, seeds: KeyframeSeed[], atTime: number) => KeyframeRef[];
   /** Drops every keyframe past `duration`. Returns how many went. */
   cropAnimation: (duration: number) => number;
+  /** Rescales every keyframe to fit the new composition duration. */
+  fitAnimationToDuration: (duration: number) => number;
   clearTrack: (layerId: string, property: AnimatableProperty) => void;
   clearAllAnimation: (layerId: string) => void;
   setWorkArea: (area: WorkArea | null) => void;
@@ -930,6 +932,51 @@ export const useProjectStore = create<ProjectStoreState>((set, get) => {
       }));
 
       return doomed.length;
+    },
+
+    fitAnimationToDuration(duration) {
+      const project = get().project;
+      if (!project || duration <= 0 || project.canvas.duration <= 0) return 0;
+
+      const scale = duration / project.canvas.duration;
+      const keyframeCount = project.layers.reduce(
+        (count, layer) =>
+          count + layer.animations.reduce((trackCount, track) => trackCount + track.keyframes.length, 0),
+        0,
+      );
+
+      if (keyframeCount === 0 && duration === project.canvas.duration) return 0;
+
+      breakCoalescing();
+      commit((current) => ({
+        ...current,
+        canvas: {
+          ...current.canvas,
+          duration,
+          workArea:
+            current.canvas.workArea && current.canvas.workArea.out > duration
+              ? {
+                  ...current.canvas.workArea,
+                  in: Math.min(current.canvas.workArea.in, duration),
+                  out: duration,
+                }
+              : current.canvas.workArea,
+        },
+        layers: current.layers.map((layer) => ({
+          ...layer,
+          animations: layer.animations.map((track) => ({
+            ...track,
+            keyframes: sortByTime(
+              track.keyframes.map((keyframe) => ({
+                ...keyframe,
+                time: roundTime(keyframe.time * scale),
+              })),
+            ),
+          })),
+        })),
+      }));
+
+      return keyframeCount;
     },
 
     setWorkArea(area) {
